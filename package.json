@@ -1,0 +1,18 @@
+{
+  "name": "covid19_updates",
+  "version": "0.0.1",
+  "description": "A Twitter bot for Covid-19 updates",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "node",
+    "typescript",
+    "lambda"
+  ],
+  "author": "Dan Bock",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^13.11.1"
+  }
+}

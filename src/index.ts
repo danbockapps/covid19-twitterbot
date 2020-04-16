@@ -1,5 +1,9 @@
+import { getStateData } from "./functions"
+
 export const handler = async (event: any = {}): Promise<any> => {
-  console.log('Hello World!')
+  const data = await getStateData('North Carolina')
+  console.log(data)
+
   const response = JSON.stringify(event)
   return response
 }

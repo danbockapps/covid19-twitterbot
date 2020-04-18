@@ -13,8 +13,12 @@
   "author": "Dan Bock",
   "license": "ISC",
   "devDependencies": {
+    "@types/jest": "^25.2.1",
     "@types/node": "^13.11.1",
-    "@types/papaparse": "^5.0.3"
+    "@types/papaparse": "^5.0.3",
+    "jest": "^25.3.0",
+    "ts-jest": "^25.4.0",
+    "typescript": "^3.8.3"
   },
   "dependencies": {
     "axios": "^0.19.2",

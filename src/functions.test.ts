@@ -19,4 +19,6 @@ it('gets the data', async () => {
   mockedAxios.get.mockResolvedValue(mockResponse)
   const data = await getStateData('Washington')
   expect(data).toHaveLength(4)
+  expect(data[3].date).toEqual(new Date('2020-01-24'))
+  expect(data[3].cases).toEqual(1)
 })

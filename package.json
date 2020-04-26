@@ -18,11 +18,15 @@
     "@types/papaparse": "^5.0.3",
     "jest": "^25.3.0",
     "ts-jest": "^25.4.0",
+    "ts-node": "^8.9.0",
     "typescript": "^3.8.3"
   },
   "dependencies": {
     "@js-joda/core": "^2.0.0",
     "axios": "^0.19.2",
-    "papaparse": "^5.2.0"
+    "dotenv": "^8.2.0",
+    "oauth-1.0a": "^2.2.6",
+    "papaparse": "^5.2.0",
+    "twitter-lite": "github:fdebijl/twitter-lite#master"
   }
 }

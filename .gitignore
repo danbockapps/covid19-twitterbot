@@ -2,3 +2,4 @@ node_modules
 dist
 function.zip
 dev.ts
+.env

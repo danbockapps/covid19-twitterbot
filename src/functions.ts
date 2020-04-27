@@ -1,6 +1,33 @@
 import { LocalDate } from '@js-joda/core'
 import axios from 'axios'
 import Papa from 'papaparse'
+import { dateExistsInDb, insertDateIntoDb } from './dynamodb'
+import { sendTweet } from './tweet'
+
+export const run = async () => {
+  if (!process.env.STATE) {
+    throw 'STATE not found in env variables.'
+  }
+
+  console.log('Getting data...')
+  const stateData = await getStateData(process.env.STATE)
+
+  console.log(`${stateData.length} rows. Calculating max date...`)
+  const maxDate = getMaxDate(stateData)
+
+  console.log(`Max date is ${maxDate}. Checking database...`)
+  const exists = await dateExistsInDb(maxDate)
+
+  if (exists) {
+    console.log('Date already exists in database. No new tweet.')
+  } else {
+    console.log('Date not found in database. Sending tweet...')
+    await sendTweet(getStateTweetText(stateData))
+
+    console.log('Updating database...')
+    await insertDateIntoDb(maxDate)
+  }
+}
 
 const getData = () =>
   axios
@@ -21,9 +48,8 @@ export const getStateData: (state: string) => Promise<StateDay[]> = state =>
       })),
   )
 
-export const getStateTweetText = async (state: string) => {
-  const data = await getStateData(state)
-  return `Updated data for ${state}
+export const getStateTweetText = (data: StateDay[]) => {
+  return `Updated data for ${data[0].state}:
 
 Cases
 ${getDayMetric(data, 'cases', 1)}: Now
@@ -49,6 +75,11 @@ export const getDayMetric: (
   )
   return row ? row[metric] : 0
 }
+
+export const getMaxDate = (stateDays: StateDay[]) =>
+  stateDays
+    .reduce((prev, curr) => (prev.date.isAfter(curr.date) ? prev : curr))
+    .date.toString()
 
 interface RawStateDay {
   date: string

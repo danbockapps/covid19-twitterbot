@@ -1,5 +1,6 @@
 import { ChronoUnit, LocalDate } from '@js-joda/core'
 import axios from 'axios'
+import { getMaxDate } from './functions'
 import {
   getDayMetric,
   getStateData,
@@ -49,7 +50,35 @@ it('gets metrics from the data', () => {
   expect(getDayMetric(washData, 'cases', daysSince125)).toEqual(0)
 })
 
-it('constructs state tweet text', async () => {
-  const tweetText = await getStateTweetText('Washington')
+it('constructs state tweet text', () => {
+  const tweetText = getStateTweetText(washData)
   expect(tweetText).toEqual(expect.stringContaining('30 days ago'))
+})
+
+const stateDays: StateDay[] = [
+  {
+    date: LocalDate.parse('2020-04-26'),
+    state: 'North Carolina',
+    fips: '',
+    cases: 0,
+    deaths: 0,
+  },
+  {
+    date: LocalDate.parse('2020-04-27'),
+    state: 'North Carolina',
+    fips: '',
+    cases: 0,
+    deaths: 0,
+  },
+  {
+    date: LocalDate.parse('2020-04-28'),
+    state: 'North Carolina',
+    fips: '',
+    cases: 0,
+    deaths: 0,
+  },
+]
+
+it('gets the max date from an array', () => {
+  expect(getMaxDate(stateDays)).toBe('2020-04-28')
 })

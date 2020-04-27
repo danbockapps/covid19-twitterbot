@@ -1,13 +1,5 @@
-import { getStateData } from "./functions"
-import dotenv from 'dotenv';
+import { run } from './functions'
 
 export const handler = async (event: any = {}): Promise<any> => {
-  const data = await getStateData('North Carolina')
-  console.log(data)
-
-  dotenv.config()
-  console.log(process.env)
-
-  const response = JSON.stringify(event)
-  return response
+  await run()
 }

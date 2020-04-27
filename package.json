@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "@js-joda/core": "^2.0.0",
+    "aws-sdk": "^2.663.0",
     "axios": "^0.19.2",
     "dotenv": "^8.2.0",
     "oauth-1.0a": "^2.2.6",

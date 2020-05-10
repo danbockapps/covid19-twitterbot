@@ -1,8 +1,9 @@
 import { ChronoUnit, LocalDate } from '@js-joda/core'
 import axios from 'axios'
-import { getMaxDate } from './functions'
 import {
+  formatWithCommas,
   getDayMetric,
+  getMaxDate,
   getStateData,
   getStateTweetText,
   StateDay,
@@ -81,4 +82,11 @@ const stateDays: StateDay[] = [
 
 it('gets the max date from an array', () => {
   expect(getMaxDate(stateDays)).toBe('2020-04-28')
+})
+
+it('formats numbers with commas', () => {
+  expect(formatWithCommas(1)).toBe('1')
+  expect(formatWithCommas(12)).toBe('12')
+  expect(formatWithCommas(1234)).toBe('1,234')
+  expect(formatWithCommas(1234567)).toBe('1,234,567')
 })

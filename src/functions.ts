@@ -52,16 +52,16 @@ export const getStateTweetText = (data: StateDay[]) => {
   return `Updated data for ${data[0].state}:
 
 Cases
-${getDayMetric(data, 'cases', 1)}: Now
-${getDayMetric(data, 'cases', 2)}: Yesterday
-${getDayMetric(data, 'cases', 8)}: 7 days ago
-${getDayMetric(data, 'cases', 31)}: 30 days ago
+${formatWithCommas(getDayMetric(data, 'cases', 1))}: Now
+${formatWithCommas(getDayMetric(data, 'cases', 2))}: Yesterday
+${formatWithCommas(getDayMetric(data, 'cases', 8))}: 7 days ago
+${formatWithCommas(getDayMetric(data, 'cases', 31))}: 30 days ago
 
 Deaths
-${getDayMetric(data, 'deaths', 1)}: Now
-${getDayMetric(data, 'deaths', 2)}: Yesterday
-${getDayMetric(data, 'deaths', 8)}: 7 days ago
-${getDayMetric(data, 'deaths', 31)}: 30 days ago
+${formatWithCommas(getDayMetric(data, 'deaths', 1))}: Now
+${formatWithCommas(getDayMetric(data, 'deaths', 2))}: Yesterday
+${formatWithCommas(getDayMetric(data, 'deaths', 8))}: 7 days ago
+${formatWithCommas(getDayMetric(data, 'deaths', 31))}: 30 days ago
 `
 }
 
@@ -80,6 +80,9 @@ export const getMaxDate = (stateDays: StateDay[]) =>
   stateDays
     .reduce((prev, curr) => (prev.date.isAfter(curr.date) ? prev : curr))
     .date.toString()
+
+export const formatWithCommas = (n: number) =>
+  n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
 
 interface RawStateDay {
   date: string

@@ -1,5 +1,5 @@
 import AWS from 'aws-sdk'
-import { dateExistsInDb, insertDateIntoDb } from './dynamodb'
+import { dateExistsInDb, insertDataIntoDb } from './dynamodb'
 
 jest.mock('aws-sdk')
 const mockedAWS = AWS as jest.Mocked<typeof AWS>
@@ -26,6 +26,6 @@ it('correctly translates database responses to true and false', async () => {
 
 it('inserts into the database', async () => {
   docClientMockInstance.put.mockReturnValue({ promise: () => {} })
-  await insertDateIntoDb('Date goes here')
+  await insertDataIntoDb('Date goes here', '123')
   expect(docClientMockInstance.put).toHaveBeenCalledTimes(1)
 })

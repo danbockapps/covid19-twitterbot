@@ -15,8 +15,8 @@ export const dateExistsInDb = async (date: String) => {
   else return false
 }
 
-export const insertDateIntoDb = async (date: String) => {
+export const insertDataIntoDb = async (date: String, tweetId: string) => {
   return await docClient
-    .put({ TableName: 'Tweets', Item: { date } })
+    .put({ TableName: 'Tweets', Item: { date, tweetId } })
     .promise()
 }

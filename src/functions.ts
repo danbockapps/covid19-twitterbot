@@ -1,7 +1,7 @@
 import { LocalDate } from '@js-joda/core'
 import axios from 'axios'
 import Papa from 'papaparse'
-import { dateExistsInDb, insertDateIntoDb } from './dynamodb'
+import { dateExistsInDb, insertDataIntoDb } from './dynamodb'
 import { sendTweet } from './tweet'
 
 export const run = async () => {
@@ -22,10 +22,10 @@ export const run = async () => {
     console.log('Date already exists in database. No new tweet.')
   } else {
     console.log('Date not found in database. Sending tweet...')
-    await sendTweet(getStateTweetText(stateData))
+    const tweet: Tweet = await sendTweet(getStateTweetText(stateData))
 
     console.log('Updating database...')
-    await insertDateIntoDb(maxDate)
+    await insertDataIntoDb(maxDate, tweet.id_str)
   }
 }
 
@@ -98,4 +98,8 @@ export interface StateDay {
   fips: string
   cases: number
   deaths: number
+}
+
+interface Tweet {
+  id_str: string
 }

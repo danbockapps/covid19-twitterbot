@@ -1,7 +1,8 @@
-import { ChronoUnit, LocalDate } from '@js-joda/core'
+import { ChronoUnit, LocalDate, Month } from '@js-joda/core'
 import axios from 'axios'
 import {
   formatWithCommas,
+  getDateArray,
   getDayMetric,
   getMaxDate,
   getStateData,
@@ -89,4 +90,12 @@ it('formats numbers with commas', () => {
   expect(formatWithCommas(12)).toBe('12')
   expect(formatWithCommas(1234)).toBe('1,234')
   expect(formatWithCommas(1234567)).toBe('1,234,567')
+})
+
+it('gets empty date array', () => {
+  const array = getDateArray(LocalDate.parse('2020-05-16'))
+  expect(array.length).toBe(90)
+  expect(array[89].year()).toBe(2020)
+  expect(array[89].month()).toBe(Month.FEBRUARY)
+  expect(array[89].dayOfMonth()).toBe(17)
 })

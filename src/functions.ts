@@ -50,7 +50,7 @@ const getData = () =>
 export const getDateArray = (end: LocalDate) => {
   const NUM_DAYS = 90
   const returnable: LocalDate[] = []
-  for (let i = 0; i < NUM_DAYS + 1; i++) {
+  for (let i = 0; i < NUM_DAYS; i++) {
     returnable.push(end.minusDays(i))
   }
   return returnable
@@ -106,7 +106,9 @@ ${getMetricTweetText(enhanced, 'newDeaths')}
 const getMetricTweetText = (
   data: StateDay[],
   metric: 'newCases' | 'newDeaths',
-) => `${data[0][metric]}: New for ${getFormattedDate(data[0].date)}
+) => `${formatWithCommas(data[0][metric])}: New for ${getFormattedDate(
+  data[0].date,
+)}
 ${getAverage(data, 0, 7, metric)}: 7 day average for ${getFormattedDate(
   data[6].date,
 )} to ${getFormattedDate(data[0].date)}
@@ -178,10 +180,12 @@ export const getMaxDate = (stateDays: StateDay[]) =>
     .reduce((prev, curr) => (prev.date.isAfter(curr.date) ? prev : curr))
     .date.toString()
 
-export const formatWithCommas = (n: number) =>
-  Math.round(n)
-    .toString()
-    .replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+export const formatWithCommas = (n?: number) =>
+  n
+    ? Math.round(n)
+        .toString()
+        .replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+    : ''
 
 interface RawStateDay {
   date: string

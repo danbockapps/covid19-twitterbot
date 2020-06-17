@@ -1,5 +1,5 @@
 const dotenv = require('dotenv')
-import Twitter = require('twitter-lite')
+import Twitter from 'twitter-lite'
 
 dotenv.config()
 

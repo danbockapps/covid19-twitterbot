@@ -28,6 +28,6 @@
     "dotenv": "^8.2.0",
     "oauth-1.0a": "^2.2.6",
     "papaparse": "^5.2.0",
-    "twitter-lite": "github:fdebijl/twitter-lite#master"
+    "twitter-lite": "^0.14.0"
   }
 }

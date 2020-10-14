@@ -25,18 +25,22 @@ export const run = async () => {
     const empty = getEmptyStateDayArray(LocalDate.parse(maxDate))
     const filled = getFilledArray(empty, stateData)
     const enhanced = getEnhancedArray(filled)
-    const tweet1: Tweet = await sendTweet(getEnhancedTweetText(enhanced))
+    try {
+      const tweet1: Tweet = await sendTweet(getEnhancedTweetText(enhanced))
 
-    console.log('Updating database...')
-    await insertDataIntoDb(maxDate, tweet1.id_str)
+      console.log('Updating database...')
+      await insertDataIntoDb(maxDate, tweet1.id_str)
 
-    console.log('Sending tweet 2...')
-    const tweet2: Tweet = await sendTweet(getStateTweetText(stateData))
+      console.log('Sending tweet 2...')
+      const tweet2: Tweet = await sendTweet(getStateTweetText(stateData))
 
-    console.log('Updating database...')
-    // TODO this overwrites the previous db entry because date is a unique key
-    // which doesn't actually cause any problems right now
-    await insertDataIntoDb(maxDate, tweet2.id_str)
+      console.log('Updating database...')
+      // TODO this overwrites the previous db entry because date is a unique key
+      // which doesn't actually cause any problems right now
+      await insertDataIntoDb(maxDate, tweet2.id_str)
+    } catch (e) {
+      console.log(e)
+    }
   }
 }
 
@@ -109,14 +113,14 @@ const getMetricTweetText = (
 ) => `${formatWithCommas(data[0][metric])}: New for ${getFormattedDate(
   data[0].date,
 )}
-${getAverage(data, 0, 7, metric)}: 7 day average for ${getFormattedDate(
+${getAverage(data, 0, 7, metric)}: 7 day avg for ${getFormattedDate(
   data[6].date,
 )} to ${getFormattedDate(data[0].date)}
-${getAverage(data, 7, 14, metric)}: 7 day average for ${getFormattedDate(
+${getAverage(data, 7, 14, metric)}: 7 day avg for ${getFormattedDate(
   data[13].date,
 )} to ${getFormattedDate(data[7].date)}
-${getAverage(data, 0, 30, metric)}: 30 day average
-${getAverage(data, 0, 90, metric)}: 90 day average
+${getAverage(data, 0, 30, metric)}: 30 day avg
+${getAverage(data, 0, 90, metric)}: 90 day avg
 `
 
 const getAverage = (

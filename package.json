@@ -34,6 +34,7 @@
   },
   "dependencies": {
     "@js-joda/core": "^2.0.0",
+    "@types/twitter": "^1.7.0",
     "aws-sdk": "^2.663.0",
     "axios": "^0.19.2",
     "dotenv": "^8.2.0",
@@ -41,6 +42,7 @@
     "oauth-1.0a": "^2.2.6",
     "papaparse": "^5.2.0",
     "puppeteer": "^5.3.1",
+    "twitter": "^1.7.1",
     "twitter-lite": "^0.14.0"
   }
 }

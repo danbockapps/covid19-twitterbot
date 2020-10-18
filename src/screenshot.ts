@@ -1,12 +1,22 @@
 import puppeteer from 'puppeteer'
-import { uploadPicture } from './tweet'
+import { sendPictureTweet, uploadPicture } from './tweet'
 
 export const runScreenshot = async () => {
   const path = `tmp/${new Date().toISOString()}.png`
   await downloadScreenshot(path)
 
-  const result = await uploadPicture(path)
-  console.log(result)
+  console.time('upload')
+  const mediaId = await uploadPicture(path)
+  console.timeEnd('upload')
+
+  console.time('send')
+  await sendPictureTweet(
+    `Here's the latest from the NC DHHS COVID-19 dashboard.
+  
+  https://covid19.ncdhhs.gov/dashboard`,
+    mediaId,
+  )
+  console.timeEnd('send')
 }
 
 const downloadScreenshot = async (path: string) => {

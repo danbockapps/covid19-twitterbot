@@ -26,6 +26,7 @@
     "@types/jest": "^25.2.1",
     "@types/node": "^13.11.1",
     "@types/papaparse": "^5.0.3",
+    "@types/puppeteer": "^3.0.2",
     "jest": "^25.3.0",
     "ts-jest": "^25.4.0",
     "ts-node": "^8.9.0",
@@ -36,8 +37,10 @@
     "aws-sdk": "^2.663.0",
     "axios": "^0.19.2",
     "dotenv": "^8.2.0",
+    "fs": "0.0.1-security",
     "oauth-1.0a": "^2.2.6",
     "papaparse": "^5.2.0",
+    "puppeteer": "^5.3.1",
     "twitter-lite": "^0.14.0"
   }
 }

@@ -3,3 +3,4 @@ dist
 function.zip
 dev.ts
 .env
+/tmp

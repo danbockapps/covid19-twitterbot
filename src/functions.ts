@@ -100,12 +100,17 @@ export const getEnhancedArray = (stateDays: StateDay[]) => {
   return returnable
 }
 
-export const getEnhancedTweetText = (enhanced: StateDay[]) => `CASES
+export const getEnhancedTweetText = (
+  enhanced: StateDay[],
+) => `CASES ${getGraphEmoji(enhanced, 'newCases')}
 ${getMetricTweetText(enhanced, 'newCases')}
 
-DEATHS
+DEATHS ${getGraphEmoji(enhanced, 'newDeaths')}
 ${getMetricTweetText(enhanced, 'newDeaths')}
 `
+
+const getGraphEmoji = (data: StateDay[], metric: 'newCases' | 'newDeaths') =>
+  getAverage(data, 0, 7, metric) > getAverage(data, 7, 14, metric) ? '📈' : '📉'
 
 const getMetricTweetText = (
   data: StateDay[],

@@ -2,7 +2,7 @@ echo "Deleting old files..."
 rm -rf dist function.zip
 
 echo "Compiling TypeScript files..."
-tsc
+npx tsc
 
 echo "Pruning dev dependencies from node_modules..."
 npm prune --production

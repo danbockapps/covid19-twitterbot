@@ -49,7 +49,9 @@ const getData = () =>
     .get<string>(
       'https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv',
     )
-    .then(response => Papa.parse(response.data, { header: true }).data)
+    .then(
+      response => Papa.parse<RawStateDay>(response.data, { header: true }).data,
+    )
 
 export const getDateArray = (end: LocalDate) => {
   const NUM_DAYS = 90

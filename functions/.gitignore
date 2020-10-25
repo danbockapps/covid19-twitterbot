@@ -8,5 +8,6 @@
 # Node.js dependency directory
 node_modules/
 
-src/dev.ts
+dev.ts
 .env
+tmp

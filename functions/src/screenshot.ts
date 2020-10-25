@@ -1,37 +1,29 @@
 import puppeteer from 'puppeteer'
-import { sendPictureTweet, uploadPicture } from './tweet'
 
-export const runScreenshot = async () => {
-  const path = `tmp/${new Date().toISOString()}.png`
-  await downloadScreenshot(path)
-
-  console.time('upload')
-  const mediaId = await uploadPicture(path)
-  console.timeEnd('upload')
-
-  console.time('send')
-  await sendPictureTweet(
-    `Here's the latest from the NC DHHS COVID-19 dashboard.
-  
-  https://covid19.ncdhhs.gov/dashboard`,
-    mediaId,
-  )
-  console.timeEnd('send')
-}
-
-const downloadScreenshot = async (path: string) => {
+export const downloadScreenshot = async (path: string) => {
+  console.log('Launching puppeteer...')
   console.time('launch')
   const browser = await puppeteer.launch()
-  const page = await browser.newPage()
-  page.setViewport({ width: 2000, height: 4000, deviceScaleFactor: 4 })
   console.timeEnd('launch')
 
+  console.log('Awaiting browser.newPage()...')
+  console.time('newPage')
+  const page = await browser.newPage()
+  console.timeEnd('newPage')
+
+  console.log('Setting viewport...')
+  console.time('setViewport')
+  page.setViewport({ width: 2000, height: 4000, deviceScaleFactor: 4 })
+  console.timeEnd('setViewport')
+
+  console.log('Goto page...')
   console.time('goto')
   await page.goto(
     'https://public.tableau.com/views/NCDHHS_COVID-19_Dashboard_Summary/NCDHHS_DASHBOARD_SUMMARY',
   )
   console.timeEnd('goto')
 
+  console.log('Waiting for selector...')
   console.time('selector')
   await page.waitForSelector('#tab-dashboard-region')
   console.timeEnd('selector')

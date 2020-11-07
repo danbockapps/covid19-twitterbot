@@ -1,4 +1,6 @@
+import { LocalDate } from '@js-joda/core'
 import puppeteer from 'puppeteer'
+import { insertDataIntoFirestore } from './firestore'
 import { sendPictureTweet, uploadPicture } from './tweet'
 
 export const runScreenshot = async () => {
@@ -10,13 +12,17 @@ export const runScreenshot = async () => {
   console.timeEnd('upload')
 
   console.time('send')
-  await sendPictureTweet(
+  const response = await sendPictureTweet(
     `Here's the latest from the NC DHHS COVID-19 dashboard.
   
 https://covid19.ncdhhs.gov/dashboard`,
     mediaId,
   )
   console.timeEnd('send')
+
+  console.time('log')
+  await insertDataIntoFirestore(LocalDate.now().toString(), 'ncdhhs', response.id_str)
+  console.timeEnd('log')
 }
 
 export const downloadScreenshot = async (path: string) => {

@@ -29,17 +29,16 @@ export const sendTweet = async (status: string) => {
   return result
 }
 
-export const sendPictureTweet = async (status: string, mediaId: string) =>
+export const sendPictureTweet = async (
+  status: string,
+  mediaId: string,
+): Promise<{ id_str: string }> =>
   await twitter.post('statuses/update', { status, media_ids: mediaId })
 
 export const uploadPicture = async (path: string): Promise<string> =>
   new Promise((resolve, reject) => {
-    oldTwitter.post(
-      'media/upload',
-      { media: fs.readFileSync(path) },
-      (error, media) => {
-        if (error) reject(error)
-        else resolve(media.media_id_string)
-      },
-    )
+    oldTwitter.post('media/upload', { media: fs.readFileSync(path) }, (error, media) => {
+      if (error) reject(error)
+      else resolve(media.media_id_string)
+    })
   })

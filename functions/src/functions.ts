@@ -219,3 +219,5 @@ export interface StateDay {
 interface Tweet {
   id_str: string
 }
+
+export type Source = 'nyt' | 'ncdhhs'

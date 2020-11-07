@@ -2,7 +2,7 @@ import puppeteer from 'puppeteer'
 import { sendPictureTweet, uploadPicture } from './tweet'
 
 export const runScreenshot = async () => {
-  const path = `tmp/${new Date().toISOString()}.png`
+  const path = `/tmp/${new Date().toISOString()}.png`
   await downloadScreenshot(path)
 
   console.time('upload')
@@ -13,18 +13,23 @@ export const runScreenshot = async () => {
   await sendPictureTweet(
     `Here's the latest from the NC DHHS COVID-19 dashboard.
   
-  https://covid19.ncdhhs.gov/dashboard`,
+https://covid19.ncdhhs.gov/dashboard`,
     mediaId,
   )
   console.timeEnd('send')
 }
 
-const downloadScreenshot = async (path: string) => {
+export const downloadScreenshot = async (path: string) => {
   console.time('launch')
-  const browser = await puppeteer.launch()
-  const page = await browser.newPage()
-  page.setViewport({ width: 2000, height: 4000, deviceScaleFactor: 4 })
+  const browser = await puppeteer.launch({
+    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+  })
   console.timeEnd('launch')
+
+  console.time('newPage')
+  const page = await browser.newPage()
+  page.setViewport({ width: 1000, height: 1000 })
+  console.timeEnd('newPage')
 
   console.time('goto')
   await page.goto(

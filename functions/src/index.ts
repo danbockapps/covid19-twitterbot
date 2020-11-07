@@ -1,9 +1,8 @@
-import * as functions from 'firebase-functions';
+import * as functions from 'firebase-functions'
+import { runScreenshot } from './screenshot'
 
-// // Start writing Firebase Functions
-// // https://firebase.google.com/docs/functions/typescript
-//
-// export const helloWorld = functions.https.onRequest((request, response) => {
-//   functions.logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
+export const screenshot = functions
+  .runWith({ memory: '2GB' })
+  .pubsub.schedule('33 12 2 11 *')
+  .timeZone('America/New_York')
+  .onRun(runScreenshot)

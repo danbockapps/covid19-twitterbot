@@ -15,9 +15,19 @@ admin.initializeApp({
 
 const db = admin.firestore()
 
-export const insertDataIntoFirestore = (date: String, source: Source, tweetId: string) =>
-  db.collection('tweetResults').doc(tweetId).set({
+export const insertDataIntoFirestore = (date: string, source: Source, tweetId: string) =>
+  db.collection('tweets').doc(tweetId).set({
     date,
     source,
     created: admin.firestore.FieldValue.serverTimestamp(),
   })
+
+export const dateExistsInFirestore = async (date: string, source: Source) => {
+  const snapshot = await db
+    .collection('tweets')
+    .where('date', '==', date)
+    .where('source', '==', source)
+    .get()
+
+  return !snapshot.empty
+}

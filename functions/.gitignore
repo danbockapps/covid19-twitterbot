@@ -9,5 +9,5 @@
 node_modules/
 
 dev.ts
-.env
+config.ts
 tmp

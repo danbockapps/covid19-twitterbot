@@ -1,28 +1,21 @@
-const dotenv = require('dotenv')
 import fs from 'fs'
 import OldTwitter, { AccessTokenOptions } from 'twitter'
 import Twitter from 'twitter-lite'
-
-dotenv.config()
+import config from './config'
 
 let twitter: Twitter
 let oldTwitter: OldTwitter
 
-if (
-  process.env.API_KEY &&
-  process.env.API_SECRET_KEY &&
-  process.env.ACCESS_TOKEN &&
-  process.env.ACCESS_TOKEN_SECRET
-) {
+if (config.API_KEY && config.API_SECRET_KEY && config.ACCESS_TOKEN && config.ACCESS_TOKEN_SECRET) {
   const options: AccessTokenOptions = {
-    consumer_key: process.env.API_KEY,
-    consumer_secret: process.env.API_SECRET_KEY,
-    access_token_key: process.env.ACCESS_TOKEN,
-    access_token_secret: process.env.ACCESS_TOKEN_SECRET,
+    consumer_key: config.API_KEY,
+    consumer_secret: config.API_SECRET_KEY,
+    access_token_key: config.ACCESS_TOKEN,
+    access_token_secret: config.ACCESS_TOKEN_SECRET,
   }
   twitter = new Twitter(options)
   oldTwitter = new OldTwitter(options)
-} else throw 'process.env variables not found'
+} else throw 'config variables not found'
 
 export const sendTweet = async (status: string) => {
   const result = await twitter.post('statuses/update', { status })

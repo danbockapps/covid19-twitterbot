@@ -1,31 +1,11 @@
 import { LocalDate } from '@js-joda/core'
 import puppeteer from 'puppeteer'
-import { insertDataIntoFirestore } from './firestore'
+import { dateExistsInFirestore, insertDataIntoFirestore } from './firestore'
 import { sendPictureTweet, uploadPicture } from './tweet'
 
 export const runScreenshot = async () => {
   const path = `/tmp/${new Date().toISOString()}.png`
-  await downloadScreenshot(path)
 
-  console.time('upload')
-  const mediaId = await uploadPicture(path)
-  console.timeEnd('upload')
-
-  console.time('send')
-  const response = await sendPictureTweet(
-    `Here's the latest from the NC DHHS COVID-19 dashboard.
-  
-https://covid19.ncdhhs.gov/dashboard`,
-    mediaId,
-  )
-  console.timeEnd('send')
-
-  console.time('log')
-  await insertDataIntoFirestore(LocalDate.now().toString(), 'ncdhhs', response.id_str)
-  console.timeEnd('log')
-}
-
-export const downloadScreenshot = async (path: string) => {
   console.time('launch')
   const browser = await puppeteer.launch({
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
@@ -47,18 +27,62 @@ export const downloadScreenshot = async (path: string) => {
   await page.waitForSelector('#tab-dashboard-region')
   console.timeEnd('selector')
 
-  // Wait for the spinner to go away
-  await new Promise(r => setTimeout(r, 100))
+  console.time('outer handle')
+  const outerHandle = await page.$x("//span[contains(text(),'Last updated')]")
+  console.timeEnd('outer handle')
 
-  console.time('href')
-  const href = await page.$('#tab-dashboard-region')
-  console.timeEnd('href')
+  console.time('inner handle')
+  const innerHandle = await outerHandle[0].getProperty('innerHTML')
+  console.timeEnd('inner handle')
 
-  console.time('screenshot')
-  href && (await href.screenshot({ path }))
-  console.timeEnd('screenshot')
+  console.time('value')
+  const updated = (await innerHandle.jsonValue()) as string
+  console.timeEnd('value')
+
+  console.time('dateExistsInFirestore')
+  const dateExists = await dateExistsInFirestore(getDateFromLastUpdate(updated), 'ncdhhs')
+  console.timeEnd('dateExistsInFirestore')
+
+  if (!dateExists) {
+    console.log('Date not found in Firestore.')
+
+    // Wait for the spinner to go away
+    // await new Promise(r => setTimeout(r, 100))
+
+    console.time('href')
+    const href = await page.$('#tab-dashboard-region')
+    console.timeEnd('href')
+
+    console.time('screenshot')
+    href && (await href.screenshot({ path }))
+    console.timeEnd('screenshot')
+
+    console.time('upload')
+    const mediaId = await uploadPicture(path)
+    console.timeEnd('upload')
+
+    console.time('send')
+    const response = await sendPictureTweet(
+      `Here's the latest from the NC DHHS COVID-19 dashboard.
+    
+  https://covid19.ncdhhs.gov/dashboard`,
+      mediaId,
+    )
+    console.timeEnd('send')
+
+    console.time('log')
+    await insertDataIntoFirestore(LocalDate.now().toString(), 'ncdhhs', response.id_str)
+    console.timeEnd('log')
+  } else console.log('Date already in Firestore.')
 
   console.time('close')
   await browser.close()
   console.timeEnd('close')
+}
+
+const getDateFromLastUpdate = (value: string) => {
+  const dateStart = value.indexOf('Last updated ') + 13
+  const dateEnd = value.indexOf('2020') + 4
+  const longDate = value.substring(dateStart, dateEnd)
+  return new Date(longDate).toISOString().substr(0, 10)
 }

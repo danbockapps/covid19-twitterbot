@@ -1,22 +1,33 @@
 import { LocalDate } from '@js-joda/core'
-import puppeteer from 'puppeteer'
+import puppeteer, { Browser, Page } from 'puppeteer'
 import { dateExistsInFirestore, insertDataIntoFirestore } from './firestore'
 import { sendPictureTweet, uploadPicture } from './tweet'
 
 export const runScreenshot = async () => {
-  const path = `/tmp/${new Date().toISOString()}.png`
+  let browser!: Browser
+  try {
+    console.time('launch')
+    browser = await puppeteer.launch({
+      args: ['--no-sandbox', '--disable-setuid-sandbox'],
+    })
+    console.timeEnd('launch')
 
-  console.time('launch')
-  const browser = await puppeteer.launch({
-    args: ['--no-sandbox', '--disable-setuid-sandbox'],
-  })
-  console.timeEnd('launch')
+    console.time('newPage')
+    const page = await browser.newPage()
+    page.setViewport({ width: 1000, height: 1000 })
+    console.timeEnd('newPage')
 
-  console.time('newPage')
-  const page = await browser.newPage()
-  page.setViewport({ width: 1000, height: 1000 })
-  console.timeEnd('newPage')
+    await checkDateAndRun(page)
+  } catch (e) {
+    console.error(e)
+  } finally {
+    console.time('close')
+    await browser.close()
+    console.timeEnd('close')
+  }
+}
 
+const checkDateAndRun = async (page: Page) => {
   console.time('goto')
   await page.goto(
     'https://public.tableau.com/views/NCDHHS_COVID-19_Dashboard_Summary/NCDHHS_DASHBOARD_SUMMARY',
@@ -53,6 +64,8 @@ export const runScreenshot = async () => {
     const href = await page.$('#tab-dashboard-region')
     console.timeEnd('href')
 
+    const path = `/tmp/${new Date().toISOString()}.png`
+
     console.time('screenshot')
     href && (await href.screenshot({ path }))
     console.timeEnd('screenshot')
@@ -65,7 +78,7 @@ export const runScreenshot = async () => {
     const response = await sendPictureTweet(
       `Here's the latest from the NC DHHS COVID-19 dashboard.
     
-  https://covid19.ncdhhs.gov/dashboard`,
+https://covid19.ncdhhs.gov/dashboard`,
       mediaId,
     )
     console.timeEnd('send')
@@ -74,10 +87,6 @@ export const runScreenshot = async () => {
     await insertDataIntoFirestore(LocalDate.now().toString(), 'ncdhhs', response.id_str)
     console.timeEnd('log')
   } else console.log('Date already in Firestore.')
-
-  console.time('close')
-  await browser.close()
-  console.timeEnd('close')
 }
 
 const getDateFromLastUpdate = (value: string) => {

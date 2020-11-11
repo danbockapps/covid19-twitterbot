@@ -1,22 +1,23 @@
 import { DateTimeFormatter, LocalDate } from '@js-joda/core'
 import axios from 'axios'
 import Papa from 'papaparse'
-import { dateExistsInDb, insertDataIntoDb } from './dynamodb'
+import config from './config'
+import { dateExistsInFirestore, insertDataIntoFirestore } from './firestore'
 import { sendTweet } from './tweet'
 
-export const run = async () => {
-  if (!process.env.STATE) {
+export const runNyt = async () => {
+  if (!config.STATE) {
     throw 'STATE not found in env variables.'
   }
 
   console.log('Getting data...')
-  const stateData = await getStateData(process.env.STATE)
+  const stateData = await getStateData(config.STATE)
 
   console.log(`${stateData.length} rows. Calculating max date...`)
   const maxDate = getMaxDate(stateData)
 
   console.log(`Max date is ${maxDate}. Checking database...`)
-  const exists = await dateExistsInDb(maxDate)
+  const exists = await dateExistsInFirestore(maxDate, 'nyt')
 
   if (exists) {
     console.log('Date already exists in database. No new tweet.')
@@ -29,26 +30,22 @@ export const run = async () => {
       const tweet1: Tweet = await sendTweet(getEnhancedTweetText(enhanced))
 
       console.log('Updating database...')
-      await insertDataIntoDb(maxDate, tweet1.id_str)
+      await insertDataIntoFirestore(maxDate, 'nyt', tweet1.id_str)
 
       console.log('Sending tweet 2...')
       const tweet2: Tweet = await sendTweet(getStateTweetText(stateData))
 
       console.log('Updating database...')
-      // TODO this overwrites the previous db entry because date is a unique key
-      // which doesn't actually cause any problems right now
-      await insertDataIntoDb(maxDate, tweet2.id_str)
+      await insertDataIntoFirestore(maxDate, 'nyt', tweet2.id_str)
     } catch (e) {
-      console.log(e)
+      console.error(e)
     }
   }
 }
 
 const getData = () =>
   axios
-    .get<string>(
-      'https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv',
-    )
+    .get<string>('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv')
     .then(
       response => Papa.parse<RawStateDay>(response.data, { header: true }).data,
     )
@@ -62,7 +59,7 @@ export const getDateArray = (end: LocalDate) => {
   return returnable
 }
 
-export const getEmptyStateDayArray: (end: LocalDate) => StateDay[] = end =>
+const getEmptyStateDayArray: (end: LocalDate) => StateDay[] = end =>
   getDateArray(end).map(date => ({
     date,
     state: '',
@@ -71,10 +68,7 @@ export const getEmptyStateDayArray: (end: LocalDate) => StateDay[] = end =>
     deaths: 0,
   }))
 
-export const getFilledArray: (
-  empty: StateDay[],
-  raw: StateDay[],
-) => StateDay[] = (empty, raw) => {
+const getFilledArray: (empty: StateDay[], raw: StateDay[]) => StateDay[] = (empty, raw) => {
   const returnable: StateDay[] = []
   empty.forEach(day => {
     const rawOfDate = raw.find(rawDay => rawDay.date.isEqual(day.date))
@@ -90,7 +84,7 @@ export const getFilledArray: (
 }
 
 // pass in sorted array that has no gaps
-export const getEnhancedArray = (stateDays: StateDay[]) => {
+const getEnhancedArray = (stateDays: StateDay[]) => {
   const returnable: StateDay[] = []
   for (let i = 0; i < stateDays.length - 1; i++) {
     returnable.push({
@@ -102,9 +96,7 @@ export const getEnhancedArray = (stateDays: StateDay[]) => {
   return returnable
 }
 
-export const getEnhancedTweetText = (
-  enhanced: StateDay[],
-) => `CASES ${getGraphEmoji(enhanced, 'newCases')}
+const getEnhancedTweetText = (enhanced: StateDay[]) => `CASES ${getGraphEmoji(enhanced, 'newCases')}
 ${getMetricTweetText(enhanced, 'newCases')}
 
 DEATHS ${getGraphEmoji(enhanced, 'newDeaths')}
@@ -117,9 +109,7 @@ const getGraphEmoji = (data: StateDay[], metric: 'newCases' | 'newDeaths') =>
 const getMetricTweetText = (
   data: StateDay[],
   metric: 'newCases' | 'newDeaths',
-) => `${formatWithCommas(data[0][metric])}: New for ${getFormattedDate(
-  data[0].date,
-)}
+) => `${formatWithCommas(data[0][metric])}: New for ${getFormattedDate(data[0].date)}
 ${getAverage(data, 0, 7, metric)}: 7 day avg for ${getFormattedDate(
   data[6].date,
 )} to ${getFormattedDate(data[0].date)}
@@ -137,9 +127,7 @@ const getAverage = (
   property: 'newCases' | 'newDeaths',
 ) =>
   formatWithCommas(
-    array
-      .slice(startIndex, endIndex)
-      .reduce((total, el) => total + (el[property] || 0), 0) /
+    array.slice(startIndex, endIndex).reduce((total, el) => total + (el[property] || 0), 0) /
       (endIndex - startIndex),
   )
 
@@ -187,9 +175,7 @@ export const getDayMetric: (
 }
 
 export const getMaxDate = (stateDays: StateDay[]) =>
-  stateDays
-    .reduce((prev, curr) => (prev.date.isAfter(curr.date) ? prev : curr))
-    .date.toString()
+  stateDays.reduce((prev, curr) => (prev.date.isAfter(curr.date) ? prev : curr)).date.toString()
 
 export const formatWithCommas = (n?: number) =>
   n

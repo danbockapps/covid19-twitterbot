@@ -20,12 +20,10 @@
   "dependencies": {
     "@js-joda/core": "^2.0.0",
     "@types/twitter": "^1.7.0",
-    "aws-sdk": "^2.663.0",
     "axios": "^0.19.2",
     "firebase-admin": "^9.3.0",
     "firebase-functions": "^3.6.1",
     "fs": "0.0.1-security",
-    "oauth-1.0a": "^2.2.6",
     "papaparse": "^5.2.0",
     "puppeteer": "^5.4.1",
     "twitter": "^1.7.1",

@@ -74,12 +74,38 @@ const checkDateAndRun = async (page: Page) => {
     const mediaId = await uploadPicture(path)
     console.timeEnd('upload')
 
+    // Start testing screenshot
+
+    console.time('goto')
+    await page.goto(
+      'https://public.tableau.com/views/NCDHHS_COVID-19_Dashboard_Testing_County/NCDHHS_Dashboard_TESTING',
+    )
+    console.timeEnd('goto')
+
+    console.time('selector')
+    await page.waitForSelector('#tab-dashboard-region')
+    console.timeEnd('selector')
+
+    console.time('href')
+    const href2 = await page.$('#tab-dashboard-region')
+    console.timeEnd('href')
+
+    const path2 = `/tmp/${new Date().toISOString()}.png`
+
+    console.time('screenshot')
+    href2 && (await href2.screenshot({ path: path2 }))
+    console.timeEnd('screenshot')
+
+    console.time('upload')
+    const mediaId2 = await uploadPicture(path2)
+    console.timeEnd('upload')
+
     console.time('send')
     const response = await sendPictureTweet(
       `Here's the latest from the NC DHHS COVID-19 dashboard.
     
 https://covid19.ncdhhs.gov/dashboard`,
-      mediaId,
+      [mediaId, mediaId2],
     )
     console.timeEnd('send')
 

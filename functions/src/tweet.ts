@@ -24,9 +24,9 @@ export const sendTweet = async (status: string) => {
 
 export const sendPictureTweet = async (
   status: string,
-  mediaId: string,
+  mediaIds: string[],
 ): Promise<{ id_str: string }> =>
-  await twitter.post('statuses/update', { status, media_ids: mediaId })
+  await twitter.post('statuses/update', { status, media_ids: mediaIds.join() })
 
 export const uploadPicture = async (path: string): Promise<string> =>
   new Promise((resolve, reject) => {

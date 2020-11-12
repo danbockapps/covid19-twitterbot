@@ -22,24 +22,26 @@ export const runNyt = async () => {
   if (exists) {
     console.log('Date already exists in database. No new tweet.')
   } else {
-    console.log('Date not found in database. Sending tweet 1...')
+    console.log('Date not found in database.')
     const empty = getEmptyStateDayArray(LocalDate.parse(maxDate))
     const filled = getFilledArray(empty, stateData)
     const enhanced = getEnhancedArray(filled)
-    try {
-      const tweet1: Tweet = await sendTweet(getEnhancedTweetText(enhanced))
+    await Promise.all([
+      sendAndLog('1', getEnhancedTweetText(enhanced), maxDate),
+      sendAndLog('2', getStateTweetText(stateData), maxDate),
+    ])
+  }
+}
 
-      console.log('Updating database...')
-      await insertDataIntoFirestore(maxDate, 'nyt', tweet1.id_str)
+const sendAndLog = async (id: string, text: string, date: string) => {
+  try {
+    console.log(`Sending tweet ${id}...`)
+    const tweet: Tweet = await sendTweet(text)
 
-      console.log('Sending tweet 2...')
-      const tweet2: Tweet = await sendTweet(getStateTweetText(stateData))
-
-      console.log('Updating database...')
-      await insertDataIntoFirestore(maxDate, 'nyt', tweet2.id_str)
-    } catch (e) {
-      console.error(e)
-    }
+    console.log(`Updating database for tweet ${id}...`)
+    await insertDataIntoFirestore(date, 'nyt', tweet.id_str)
+  } catch (e) {
+    console.error(e)
   }
 }
 

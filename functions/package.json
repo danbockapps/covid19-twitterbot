@@ -19,7 +19,6 @@
   },
   "dependencies": {
     "@js-joda/core": "^2.0.0",
-    "@types/twitter": "^1.7.0",
     "axios": "^0.19.2",
     "firebase-admin": "^9.3.0",
     "firebase-functions": "^3.6.1",
@@ -34,6 +33,7 @@
     "@types/node": "^13.11.1",
     "@types/papaparse": "^5.0.3",
     "@types/puppeteer": "^3.0.2",
+    "@types/twitter": "^1.7.0",
     "firebase-functions-test": "^0.2.0",
     "jest": "^25.3.0",
     "ts-jest": "^25.4.0",

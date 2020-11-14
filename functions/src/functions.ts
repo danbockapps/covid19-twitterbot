@@ -11,7 +11,7 @@ export const runNyt = async () => {
   }
 
   console.log('Getting data...')
-  const stateData = await getStateData(config.STATE)
+  const stateData = await getStateData(config.STATE, 'states')
 
   console.log(`${stateData.length} rows. Calculating max date...`)
   const maxDate = getMaxDate(stateData)
@@ -44,13 +44,6 @@ const sendAndLog = async (id: string, text: string, date: string) => {
     console.error(e)
   }
 }
-
-const getData = () =>
-  axios
-    .get<string>('https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-states.csv')
-    .then(
-      response => Papa.parse<RawStateDay>(response.data, { header: true }).data,
-    )
 
 export const getDateArray = (end: LocalDate) => {
   const NUM_DAYS = 90
@@ -136,17 +129,20 @@ const getAverage = (
 const getFormattedDate = (localDate: LocalDate) =>
   localDate.format(DateTimeFormatter.ofPattern('M/d'))
 
-export const getStateData: (state: string) => Promise<StateDay[]> = state =>
-  getData().then(data =>
-    data
-      .filter((row: RawStateDay) => row.state === state)
-      .map((row: RawStateDay) => ({
-        ...row,
-        date: LocalDate.parse(row.date),
-        cases: Number(row.cases),
-        deaths: Number(row.deaths),
-      })),
-  )
+// TODO improve types
+export const getStateData = <T extends RawStateDay>(state: string, file: 'states' | 'counties') =>
+  axios
+    .get<string>(`https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-${file}.csv`)
+    .then(response =>
+      Papa.parse<T>(response.data, { header: true })
+        .data.filter(row => row.state === state)
+        .map(row => ({
+          ...row,
+          date: LocalDate.parse(row.date),
+          cases: Number(row.cases),
+          deaths: Number(row.deaths),
+        })),
+    )
 
 export const getStateTweetText = (data: StateDay[]) => {
   return `Updated data for ${data[0].state}:
@@ -186,13 +182,15 @@ export const formatWithCommas = (n?: number) =>
         .replace(/\B(?=(\d{3})+(?!\d))/g, ',')
     : ''
 
-interface RawStateDay {
+export interface RawStateDay {
   date: string
   state: string
   fips: string
   cases: string
   deaths: string
 }
+
+export type RawCountyDay = RawStateDay & { county: string }
 
 export interface StateDay {
   date: LocalDate
@@ -203,6 +201,8 @@ export interface StateDay {
   newCases?: number
   newDeaths?: number
 }
+
+export type CountyDay = StateDay & { county: string }
 
 interface Tweet {
   id_str: string

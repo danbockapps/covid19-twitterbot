@@ -28,7 +28,7 @@ let washData: StateDay[]
 
 beforeAll(async () => {
   mockedAxios.get.mockResolvedValue(mockResponse)
-  washData = await getStateData('Washington')
+  washData = await getStateData('Washington', 'states')
 })
 
 it('gets the data', async () => {
@@ -38,15 +38,8 @@ it('gets the data', async () => {
 })
 
 it('gets metrics from the data', () => {
-  const daysSince124 = LocalDate.parse('2020-01-24').until(
-    LocalDate.now(),
-    ChronoUnit.DAYS,
-  )
-
-  const daysSince125 = LocalDate.parse('2020-01-25').until(
-    LocalDate.now(),
-    ChronoUnit.DAYS,
-  )
+  const daysSince124 = LocalDate.parse('2020-01-24').until(LocalDate.now(), ChronoUnit.DAYS)
+  const daysSince125 = LocalDate.parse('2020-01-25').until(LocalDate.now(), ChronoUnit.DAYS)
 
   expect(getDayMetric(washData, 'cases', daysSince124)).toEqual(1)
   expect(getDayMetric(washData, 'cases', daysSince125)).toEqual(0)

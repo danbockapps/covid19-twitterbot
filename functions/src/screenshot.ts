@@ -102,7 +102,7 @@ const checkDateAndRun = async (page: Page) => {
 
     console.time('send')
     const response = await sendPictureTweet(
-      `Here's the latest from the NC DHHS COVID-19 dashboard.
+      `The state just posted the daily update to its COVID-19 dashboard.
     
 https://covid19.ncdhhs.gov/dashboard`,
       [mediaId, mediaId2],

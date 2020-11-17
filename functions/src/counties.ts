@@ -1,18 +1,32 @@
 import { LocalDate } from '@js-joda/core'
+import { saveAllRates } from './firestore'
 import { CountyDay, getStateData, RawCountyDay } from './functions'
 import population from './population'
 import { sendTweet } from './tweet'
 
 export const runCounties = async () => {
   try {
-    const rates = await getCountyRates()
-    await sendTweet(getTweetText(rates, 0, ''))
+    const endDate = LocalDate.now().minusDays(1)
+    const rates = await getCountyRates(endDate)
+
+    await Promise.all([
+      async () => {
+        console.log('Starting sendTweet')
+        await sendTweet(getTweetText(rates, 0, ''))
+        console.log('Ending sendTweet')
+      },
+      async () => {
+        console.log('Starting saveAllRates')
+        await saveAllRates(rates, endDate)
+        console.log('Ending saveAllRates')
+      },
+    ])
   } catch (e) {
     console.error(e)
   }
 }
 
-interface Rate {
+export interface Rate {
   county: string
   rate: number
 }
@@ -32,14 +46,13 @@ ${index + 1}. ${rates[index].county} ${roundOff(rates[index].rate)}`)
   else return getTweetText(rates, index + 1, newText)
 }
 
-export const getCountyRates = async (): Promise<Rate[]> => {
+export const getCountyRates = async (end: LocalDate): Promise<Rate[]> => {
   console.time('counties')
   const nc: CountyDay[] = await getStateData<RawCountyDay>('North Carolina', 'counties')
   console.timeEnd('counties')
 
-  const now = LocalDate.now().minusDays(1)
   return nc
-    .filter(c => c.date.equals(now.minusDays(7)) || c.date.equals(now))
+    .filter(c => c.date.equals(end.minusDays(7)) || c.date.equals(end))
     .reduce<{ county: string; start?: number; end?: number; population?: number }[]>(
       (acc, cur) =>
         acc.find(c => c.county === cur.county)
@@ -47,15 +60,15 @@ export const getCountyRates = async (): Promise<Rate[]> => {
               a.county === cur.county
                 ? {
                     ...a,
-                    start: cur.date.equals(now.minusDays(7)) ? cur.cases : a.start,
-                    end: cur.date.equals(now) ? cur.cases : a.end,
+                    start: cur.date.equals(end.minusDays(7)) ? cur.cases : a.start,
+                    end: cur.date.equals(end) ? cur.cases : a.end,
                   }
                 : a,
             )
           : acc.concat({
               county: cur.county,
-              start: cur.date.equals(now.minusDays(7)) ? cur.cases : undefined,
-              end: cur.date.equals(now) ? cur.cases : undefined,
+              start: cur.date.equals(end.minusDays(7)) ? cur.cases : undefined,
+              end: cur.date.equals(end) ? cur.cases : undefined,
               population: population.find(p => p.county === cur.county)?.population,
             }),
       [],

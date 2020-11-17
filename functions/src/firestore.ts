@@ -1,12 +1,14 @@
+import { LocalDate } from '@js-joda/core'
+import admin from 'firebase-admin'
+import { Rate } from './counties'
+import { Source } from './functions'
+
 /*
 Private key file was generated in Firebase Console settings.
 
 Run this command to make it work locally:
 export GOOGLE_APPLICATION_CREDENTIALS="/Users/dbock/code/covid19-twitterbot/covid19-twitterbot-firebase-adminsdk-m5oa0-ab9abc440c.json"
 */
-
-import admin from 'firebase-admin'
-import { Source } from './functions'
 
 admin.initializeApp({
   credential: admin.credential.applicationDefault(),
@@ -30,4 +32,15 @@ export const dateExistsInFirestore = async (date: string, source: Source) => {
     .get()
 
   return !snapshot.empty
+}
+
+export const saveAllRates = async (rates: Rate[], date: LocalDate) => {
+  let batch = db.batch()
+
+  rates.forEach(rate => {
+    const ref = db.collection('county-rates').doc()
+    batch.set(ref, { ...rate, date: date.toString() })
+  })
+
+  return await batch.commit()
 }

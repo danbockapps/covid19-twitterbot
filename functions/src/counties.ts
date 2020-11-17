@@ -30,6 +30,11 @@ export const runCounties = async () => {
         console.log('Ending sendTweet')
       })(),
       (async () => {
+        console.log('Starting sendTweet for big cos')
+        await sendTweet(getBigCosTweetText(mergeRates(oldRates, newRates), 0, ''))
+        console.log('Ending sendTweet for big cos')
+      })(),
+      (async () => {
         console.log('Starting saveAllRates')
         await saveAllRates(newRates, endDate)
         console.log('Ending saveAllRates')
@@ -66,21 +71,45 @@ export const mergeRates = (oldRates: Rate[], newRates: Rate[]): MergedRate[] =>
 
 const roundOff = (n: number) => Math.round(n * 10) / 10
 
+const getEmoji = (m: MergedRate) => (m.newRate > m.oldRate ? '🔺' : '⬇️')
+
 export const getTweetText = (rates: MergedRate[], index: number, text: string): string => {
   const newText =
     index === 0
       ? `Top NC counties, 7-day avg new cases:
 
-1. ${rates[index].newRate > rates[index].oldRate ? '🔺' : '⬇️'} ${
-          rates[index].county
-        } County: ${roundOff(rates[index].newRate)} per 100,000 people`
+1. ${getEmoji(rates[index])} ${rates[index].county} County: ${roundOff(
+          rates[index].newRate,
+        )} per 100,000 people`
       : text.concat(`
-${index + 1}. ${rates[index].newRate > rates[index].oldRate ? '🔺' : '⬇️'} ${
-          rates[index].county
-        } ${roundOff(rates[index].newRate)}`)
+${index + 1}. ${getEmoji(rates[index])} ${rates[index].county} ${roundOff(rates[index].newRate)}`)
 
   if (newText.length > 280) return text
   else return getTweetText(rates, index + 1, newText)
+}
+
+export const getBigCosTweetText = (rates: MergedRate[], index: number, text: string): string => {
+  const ratesWithPop = rates
+    .map(r => ({
+      ...r,
+      population: population.find(p => p.county === r.county)?.population || 0,
+    }))
+    .sort((a, b) => b.population - a.population)
+
+  const newText =
+    index === 0
+      ? `Biggest NC counties, 7-day avg new cases:
+    
+${getEmoji(ratesWithPop[index])} ${ratesWithPop[index].county} County: ${roundOff(
+          ratesWithPop[index].newRate,
+        )} per 100,000 people`
+      : text.concat(`
+${getEmoji(ratesWithPop[index])} ${ratesWithPop[index].county} ${roundOff(
+          ratesWithPop[index].newRate,
+        )}`)
+
+  if (newText.length > 280) return text
+  else return getBigCosTweetText(ratesWithPop, index + 1, newText)
 }
 
 export const getCountyRates = async (end: LocalDate): Promise<Rate[]> => {

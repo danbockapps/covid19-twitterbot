@@ -1,5 +1,5 @@
 import { LocalDate } from '@js-joda/core'
-import { saveAllRates } from './firestore'
+import { getSavedRates, saveAllRates } from './firestore'
 import { CountyDay, getStateData, RawCountyDay } from './functions'
 import population from './population'
 import { sendTweet } from './tweet'
@@ -7,19 +7,33 @@ import { sendTweet } from './tweet'
 export const runCounties = async () => {
   try {
     const endDate = LocalDate.now().minusDays(1)
-    const rates = await getCountyRates(endDate)
+
+    const [oldRates, newRates] = await Promise.all([
+      (async () => {
+        console.log(new Date().toISOString(), 'Starting oldRates')
+        const returnable = await getSavedRates(LocalDate.now().minusDays(2))
+        console.log(new Date().toISOString(), 'Ending oldRates')
+        return returnable
+      })(),
+      (async () => {
+        console.log(new Date().toISOString(), 'Starting newRates')
+        const returnable = await getCountyRates(endDate)
+        console.log(new Date().toISOString(), 'Ending newRates')
+        return returnable
+      })(),
+    ])
 
     await Promise.all([
-      async () => {
+      (async () => {
         console.log('Starting sendTweet')
-        await sendTweet(getTweetText(rates, 0, ''))
+        await sendTweet(getTweetText(mergeRates(oldRates, newRates), 0, ''))
         console.log('Ending sendTweet')
-      },
-      async () => {
+      })(),
+      (async () => {
         console.log('Starting saveAllRates')
-        await saveAllRates(rates, endDate)
+        await saveAllRates(newRates, endDate)
         console.log('Ending saveAllRates')
-      },
+      })(),
     ])
   } catch (e) {
     console.error(e)
@@ -31,16 +45,39 @@ export interface Rate {
   rate: number
 }
 
+export interface MergedRate {
+  county: string
+  oldRate: number
+  newRate: number
+}
+
+export const mergeRates = (oldRates: Rate[], newRates: Rate[]): MergedRate[] =>
+  oldRates
+    .reduce<MergedRate[]>(
+      (acc, cur) =>
+        acc.concat({
+          county: cur.county,
+          oldRate: cur.rate,
+          newRate: newRates.find(r => r.county === cur.county)?.rate || 0,
+        }),
+      [],
+    )
+    .sort((a, b) => b.newRate - a.newRate)
+
 const roundOff = (n: number) => Math.round(n * 10) / 10
 
-const getTweetText = (rates: Rate[], index: number, text: string): string => {
+export const getTweetText = (rates: MergedRate[], index: number, text: string): string => {
   const newText =
     index === 0
       ? `Top NC counties, 7-day avg new cases:
 
-1. ${rates[index].county} County: ${roundOff(rates[index].rate)} per 100,000 people`
+1. ${rates[index].newRate > rates[index].oldRate ? '🔺' : '⬇️'} ${
+          rates[index].county
+        } County: ${roundOff(rates[index].newRate)} per 100,000 people`
       : text.concat(`
-${index + 1}. ${rates[index].county} ${roundOff(rates[index].rate)}`)
+${index + 1}. ${rates[index].newRate > rates[index].oldRate ? '🔺' : '⬇️'} ${
+          rates[index].county
+        } ${roundOff(rates[index].newRate)}`)
 
   if (newText.length > 280) return text
   else return getTweetText(rates, index + 1, newText)
@@ -77,5 +114,4 @@ export const getCountyRates = async (end: LocalDate): Promise<Rate[]> => {
       if (!c.start || !c.end || !c.population) throw new Error('Incomplete data')
       else return { county: c.county, rate: ((c.end - c.start) * 100000) / (c.population * 7) }
     })
-    .sort((a, b) => b.rate - a.rate)
 }

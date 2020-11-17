@@ -44,3 +44,14 @@ export const saveAllRates = async (rates: Rate[], date: LocalDate) => {
 
   return await batch.commit()
 }
+
+export const getSavedRates = async (date: LocalDate) => {
+  const snapshot = await db.collection('county-rates').where('date', '==', date.toString()).get()
+
+  const returnable: Rate[] = snapshot.docs.map(doc => {
+    const { county, rate } = doc.data()
+    return { county, rate }
+  })
+
+  return returnable
+}

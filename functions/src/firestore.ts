@@ -55,3 +55,12 @@ export const getSavedRates = async (date: LocalDate) => {
 
   return returnable
 }
+
+// For adhoc purposes
+export const deleteDate = async (date: string) => {
+  const snapshot = await db.collection('county-rates').where('date', '==', date).get()
+
+  const batch = db.batch()
+  snapshot.forEach(doc => batch.delete(doc.ref))
+  return batch.commit()
+}

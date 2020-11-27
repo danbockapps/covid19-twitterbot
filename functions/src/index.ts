@@ -18,6 +18,6 @@ export const nyt = functions.pubsub
 
 export const counties = functions
   .runWith({ memory: '2GB' })
-  .pubsub.schedule('0 9 * * *')
+  .pubsub.schedule('0 6 * * *')
   .timeZone(NY)
   .onRun(runCounties)

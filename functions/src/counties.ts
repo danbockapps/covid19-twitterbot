@@ -23,23 +23,26 @@ export const runCounties = async () => {
       })(),
     ])
 
-    await Promise.all([
-      (async () => {
-        console.log('Starting sendTweet')
-        await sendTweet(getTweetText(mergeRates(oldRates, newRates), 0, ''))
-        console.log('Ending sendTweet')
-      })(),
-      (async () => {
-        console.log('Starting sendTweet for big cos')
-        await sendTweet(getBigCosTweetText(mergeRates(oldRates, newRates), 0, ''))
-        console.log('Ending sendTweet for big cos')
-      })(),
-      (async () => {
-        console.log('Starting saveAllRates')
-        await saveAllRates(newRates, endDate)
-        console.log('Ending saveAllRates')
-      })(),
-    ])
+    console.log('oldRates.length', oldRates.length, 'newRates.length', newRates.length)
+
+    if (oldRates.length === 100 && newRates.length === 100)
+      return await Promise.all([
+        (async () => {
+          console.log('Starting sendTweet')
+          await sendTweet(getTweetText(mergeRates(oldRates, newRates), 0, ''))
+          console.log('Ending sendTweet')
+        })(),
+        (async () => {
+          console.log('Starting sendTweet for big cos')
+          await sendTweet(getBigCosTweetText(mergeRates(oldRates, newRates), 0, ''))
+          console.log('Ending sendTweet for big cos')
+        })(),
+        (async () => {
+          console.log('Starting saveAllRates')
+          await saveAllRates(newRates, endDate)
+          console.log('Ending saveAllRates')
+        })(),
+      ])
   } catch (e) {
     console.error(e)
   }

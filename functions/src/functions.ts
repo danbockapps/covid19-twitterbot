@@ -180,7 +180,7 @@ export const formatWithCommas = (n?: number) =>
     ? Math.round(n)
         .toString()
         .replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-    : ''
+    : '0'
 
 export interface RawStateDay {
   date: string

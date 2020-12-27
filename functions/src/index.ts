@@ -1,4 +1,5 @@
 import * as functions from 'firebase-functions'
+import { runCdcVaccinations } from './cdcvaccinations'
 import { runCounties } from './counties'
 import { runNyt } from './functions'
 import { runScreenshot } from './screenshot'
@@ -21,3 +22,8 @@ export const counties = functions
   .pubsub.schedule('0 6 * * *')
   .timeZone(NY)
   .onRun(runCounties)
+
+export const cdcVaccinations = functions.pubsub
+  .schedule('7,22,37,52 * * * *')
+  .timeZone(NY)
+  .onRun(runCdcVaccinations)

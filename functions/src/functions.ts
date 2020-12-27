@@ -204,8 +204,8 @@ export interface StateDay {
 
 export type CountyDay = StateDay & { county: string }
 
-interface Tweet {
+export interface Tweet {
   id_str: string
 }
 
-export type Source = 'nyt' | 'ncdhhs'
+export type Source = 'nyt' | 'ncdhhs' | 'cdcv'

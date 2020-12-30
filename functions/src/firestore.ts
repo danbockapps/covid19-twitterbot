@@ -56,6 +56,17 @@ export const getSavedRates = async (date: LocalDate) => {
   return returnable
 }
 
+export const getLatest = async (source: Source): Promise<string> => {
+  const snapshot = await db
+    .collection('tweets')
+    .where('source', '==', source)
+    .orderBy('created', 'desc')
+    .limit(1)
+    .get()
+
+  return snapshot.docs[0].id
+}
+
 // For adhoc purposes
 export const deleteDate = async (date: string) => {
   const snapshot = await db.collection('county-rates').where('date', '==', date).get()

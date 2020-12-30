@@ -1,5 +1,5 @@
 import Axios from 'axios'
-import { dateExistsInFirestore, insertDataIntoFirestore } from './firestore'
+import { dateExistsInFirestore, getLatest, insertDataIntoFirestore } from './firestore'
 import { formatWithCommas, Tweet } from './functions'
 import { sendTweet } from './tweet'
 
@@ -15,8 +15,12 @@ export const runCdcVaccinations = async () => {
     if (!exists) {
       console.log(`Date ${data.Date} does not exist in Firestore. Tweeting...`)
 
+      const previousTweetId = await getLatest('cdcv')
+      console.log('Previous tweet: ' + previousTweetId)
+
       const tweet: Tweet = await sendTweet(
         getTweetText(data.Date, data.Doses_Distributed, data.Doses_Administered),
+        previousTweetId,
       )
 
       console.log('Saving date...')

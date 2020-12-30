@@ -17,8 +17,12 @@ if (config.API_KEY && config.API_SECRET_KEY && config.ACCESS_TOKEN && config.ACC
   oldTwitter = new OldTwitter(options)
 } else throw 'config variables not found'
 
-export const sendTweet = async (status: string) => {
-  const result = await twitter.post('statuses/update', { status })
+export const sendTweet = async (status: string, in_reply_to_status_id?: string) => {
+  let obj: { status: string; in_reply_to_status_id?: string }
+  if (in_reply_to_status_id) obj = { status, in_reply_to_status_id }
+  else obj = { status }
+
+  const result = await twitter.post('statuses/update', obj)
   return result
 }
 

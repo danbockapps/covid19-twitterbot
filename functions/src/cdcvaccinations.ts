@@ -1,6 +1,6 @@
 import Axios from 'axios'
 import { dateExistsInFirestore, getLatest, insertDataIntoFirestore } from './firestore'
-import { formatWithCommas, Tweet } from './functions'
+import { formatWithCommas, Source, Tweet } from './functions'
 import { sendTweet } from './tweet'
 
 export interface CdcDataPoint {
@@ -10,29 +10,29 @@ export interface CdcDataPoint {
   Doses_Administered: number
 }
 
-export const runCdcVaccinations = async () => {
+export const runCdcVaccinations = async (location: string, source: Source, headline: string) => {
   const rawData = await getCdcData()
 
-  const data = rawData.vaccination_data.find(d => d.Location === 'US')
+  const data = rawData.vaccination_data.find(d => d.Location === location)
   console.log('data', data)
 
   if (data && data.Date && data.Doses_Distributed && data.Doses_Administered) {
-    const exists = await dateExistsInFirestore(data.Date, 'cdcv')
+    const exists = await dateExistsInFirestore(data.Date, source)
 
     if (!exists) {
       console.log(`Date ${data.Date} does not exist in Firestore. Tweeting...`)
 
-      const previousTweetId = await getLatest('cdcv')
+      const previousTweetId = await getLatest(source)
       console.log('Previous tweet: ' + previousTweetId)
 
       const tweet: Tweet = await sendTweet(
-        getTweetText(data.Date, data.Doses_Distributed, data.Doses_Administered),
+        getTweetText(data.Date, data.Doses_Distributed, data.Doses_Administered, headline),
         previousTweetId,
       )
 
       console.log('Saving date...')
 
-      await insertDataIntoFirestore(data.Date, 'cdcv', tweet.id_str)
+      await insertDataIntoFirestore(data.Date, source, tweet.id_str)
     } else console.log(`We already tweeted for ${data.Date}.`)
   } else console.log('Data is not usable.')
 }
@@ -44,8 +44,13 @@ const getCdcData = async () => {
   return response.data
 }
 
-const getTweetText = (date: string, dosesDistributed: number, dosesAdministered: number) => `
-💉 COVID-19 VACCINATIONS (USA) 🇺🇸
+const getTweetText = (
+  date: string,
+  dosesDistributed: number,
+  dosesAdministered: number,
+  headline: string,
+) => `
+${headline}
 
 ${formatWithCommas(dosesDistributed)} doses distributed
 ${formatWithCommas(dosesAdministered)} doses administered

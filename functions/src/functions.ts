@@ -208,4 +208,4 @@ export interface Tweet {
   id_str: string
 }
 
-export type Source = 'nyt' | 'ncdhhs' | 'cdcv'
+export type Source = 'nyt' | 'ncdhhs' | 'cdcv' | 'cdcv_nc'

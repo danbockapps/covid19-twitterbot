@@ -64,7 +64,7 @@ export const getLatest = async (source: Source): Promise<string> => {
     .limit(1)
     .get()
 
-  return snapshot.docs[0].id
+  return snapshot.docs[0]?.id
 }
 
 // For adhoc purposes

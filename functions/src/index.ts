@@ -24,6 +24,11 @@ export const counties = functions
   .onRun(runCounties)
 
 export const cdcVaccinations = functions.pubsub
-  .schedule('7,22,37,52 * * * *')
+  .schedule('5,20,35,50 8,9,10,11,12,13,14,15,16,17,18,19 * * *')
   .timeZone(NY)
-  .onRun(runCdcVaccinations)
+  .onRun(() => runCdcVaccinations('US', 'cdcv', '💉 COVID-19 VACCINATIONS (USA) 🇺🇸'))
+
+export const cdcVaccinationsNc = functions.pubsub
+  .schedule('10,25,40,55 8,9,10,11,12,13,14,15,16,17,18,19 * * *')
+  .timeZone(NY)
+  .onRun(() => runCdcVaccinations('NC', 'cdcv_nc', '💉 COVID-19 VACCINATIONS (NC) 🌲'))

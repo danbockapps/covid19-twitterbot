@@ -3,13 +3,20 @@ import { dateExistsInFirestore, getLatest, insertDataIntoFirestore } from './fir
 import { formatWithCommas, Tweet } from './functions'
 import { sendTweet } from './tweet'
 
+export interface CdcDataPoint {
+  Date: string
+  Location: string
+  Doses_Distributed: number
+  Doses_Administered: number
+}
+
 export const runCdcVaccinations = async () => {
   const rawData = await getCdcData()
 
-  console.log('rawData', JSON.stringify(rawData))
-  const data = rawData.vaccination_data[0]
+  const data = rawData.vaccination_data.find(d => d.Location === 'US')
+  console.log('data', data)
 
-  if (data.Date && data.Doses_Distributed && data.Doses_Administered) {
+  if (data && data.Date && data.Doses_Distributed && data.Doses_Administered) {
     const exists = await dateExistsInFirestore(data.Date, 'cdcv')
 
     if (!exists) {
@@ -31,7 +38,7 @@ export const runCdcVaccinations = async () => {
 }
 
 const getCdcData = async () => {
-  const response = await Axios.get(
+  const response = await Axios.get<{ vaccination_data: CdcDataPoint[] }>(
     'https://covid.cdc.gov/covid-data-tracker/COVIDData/getAjaxData?id=vaccination_data',
   )
   return response.data

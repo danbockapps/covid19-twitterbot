@@ -8,6 +8,7 @@ export interface CdcDataPoint {
   Location: string
   Doses_Distributed: number
   Doses_Administered: number
+  Census2019: number
 }
 
 export const runCdcVaccinations = async (location: string, source: Source, headline: string) => {
@@ -37,7 +38,7 @@ export const runCdcVaccinations = async (location: string, source: Source, headl
   } else console.log('Data is not usable.')
 }
 
-const getCdcData = async () => {
+export const getCdcData = async () => {
   const response = await Axios.get<{ vaccination_data: CdcDataPoint[] }>(
     'https://covid.cdc.gov/covid-data-tracker/COVIDData/getAjaxData?id=vaccination_data',
   )

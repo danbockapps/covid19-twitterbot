@@ -72,7 +72,7 @@ export const mergeRates = (oldRates: Rate[], newRates: Rate[]): MergedRate[] =>
     )
     .sort((a, b) => b.newRate - a.newRate)
 
-const roundOff = (n: number) => Math.round(n * 10) / 10
+export const roundOff = (n: number) => Math.round(n * 10) / 10
 
 const getEmoji = (m: MergedRate) => (m.newRate > m.oldRate ? '🔺' : '⬇️')
 

@@ -117,7 +117,7 @@ https://covid19.ncdhhs.gov/dashboard`,
 
 const getDateFromLastUpdate = (value: string) => {
   const dateStart = value.indexOf('Last updated ') + 13
-  const dateEnd = value.indexOf('2020') + 4
+  const dateEnd = value.indexOf(`${new Date().getFullYear()}`) + 4
   const longDate = value.substring(dateStart, dateEnd)
   return new Date(longDate).toISOString().substr(0, 10)
 }

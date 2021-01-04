@@ -1,5 +1,10 @@
 import Axios from 'axios'
-import { dateExistsInFirestore, getLatest, insertDataIntoFirestore } from './firestore'
+import {
+  dateExistsInFirestore,
+  getLatest,
+  insertDataIntoFirestore,
+  insertVaxProgress,
+} from './firestore'
 import { formatWithCommas, Source, Tweet } from './functions'
 import { sendTweet } from './tweet'
 
@@ -15,7 +20,7 @@ export const runCdcVaccinations = async (location: string, source: Source, headl
   const rawData = await getCdcData()
 
   const data = rawData.vaccination_data.find(d => d.Location === location)
-  console.log('data', data)
+  console.log('data', JSON.stringify(data))
 
   if (data && data.Date && data.Doses_Distributed && data.Doses_Administered) {
     const exists = await dateExistsInFirestore(data.Date, source)
@@ -33,7 +38,10 @@ export const runCdcVaccinations = async (location: string, source: Source, headl
 
       console.log('Saving date...')
 
-      await insertDataIntoFirestore(data.Date, source, tweet.id_str)
+      await Promise.all([
+        insertDataIntoFirestore(data.Date, source, tweet.id_str),
+        insertVaxProgress(data.Doses_Administered, data.Doses_Distributed, source, data.Date),
+      ])
     } else console.log(`We already tweeted for ${data.Date}.`)
   } else console.log('Data is not usable.')
 }

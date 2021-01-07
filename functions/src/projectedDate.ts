@@ -1,5 +1,5 @@
-import { ChronoUnit, DateTimeFormatter, LocalDate } from '@js-joda/core'
-import { getCdcData } from './cdcvaccinations'
+import { ChronoUnit, LocalDate } from '@js-joda/core'
+import { CdcDataPoint } from './cdcvaccinations'
 import { roundOff } from './counties'
 import { getLatest, insertDataIntoFirestore } from './firestore'
 import { Tweet } from './functions'
@@ -7,10 +7,8 @@ import { sendTweet } from './tweet'
 
 const START_DATE = LocalDate.of(2020, 12, 14)
 
-export const runProjectedDate = async () => {
-  const cdcData = await getCdcData()
-  const data = cdcData.vaccination_data.find(d => d.Location === 'NC')
-  console.log('data', JSON.stringify(data))
+export const runProjectedDate = async (data: CdcDataPoint) => {
+  console.log('data for runProjectedDate', JSON.stringify(data))
 
   if (data && data.Date && data.Doses_Administered && data.Census2019) {
     const previousTweetId = await getLatest('projected')

@@ -6,6 +6,7 @@ import {
   insertVaxProgress,
 } from './firestore'
 import { formatWithCommas, Source, Tweet } from './functions'
+import { runProjectedDate } from './projectedDate'
 import { sendTweet } from './tweet'
 
 export interface CdcDataPoint {
@@ -42,6 +43,8 @@ export const runCdcVaccinations = async (location: string, source: Source, headl
         insertDataIntoFirestore(data.Date, source, tweet.id_str),
         insertVaxProgress(data.Doses_Administered, data.Doses_Distributed, source, data.Date),
       ])
+
+      if (location === 'NC') await runProjectedDate(data)
     } else console.log(`We already tweeted for ${data.Date}.`)
   } else console.log('Data is not usable.')
 }

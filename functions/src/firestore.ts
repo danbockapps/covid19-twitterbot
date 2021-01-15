@@ -1,5 +1,6 @@
 import { LocalDate } from '@js-joda/core'
 import admin from 'firebase-admin'
+import { CdcDataPoint } from './cdcvaccinations'
 import { Rate } from './counties'
 import { Source } from './functions'
 
@@ -24,20 +25,16 @@ export const insertDataIntoFirestore = (date: string, source: Source, tweetId: s
     created: admin.firestore.FieldValue.serverTimestamp(),
   })
 
-export const insertVaxProgress = (
-  dosesAdministered: number,
-  dosesDistributed: number,
-  source: Source,
-  sourceDate: string,
-) =>
-  db.collection('vax-progress').doc().set({
-    dosesAdministered,
-    dosesDistributed,
-    source,
-    sourceDate,
-    firestoreDate: admin.firestore.FieldValue.serverTimestamp(),
-    localDate: LocalDate.now().toString(),
-  })
+export const insertVaxProgress = (data: CdcDataPoint, source: Source) =>
+  db
+    .collection('vax-progress')
+    .doc()
+    .set({
+      ...data,
+      source,
+      firestoreDate: admin.firestore.FieldValue.serverTimestamp(),
+      localDate: LocalDate.now().toString(),
+    })
 
 export const dateExistsInFirestore = async (date: string, source: Source) => {
   const snapshot = await db

@@ -14,6 +14,8 @@ export interface CdcDataPoint {
   Location: string
   Doses_Distributed: number
   Doses_Administered: number
+  Administered_Dose1: number
+  Administered_Dose2: number
   Census2019: number
 }
 
@@ -33,7 +35,13 @@ export const runCdcVaccinations = async (location: string, source: Source, headl
       console.log('Previous tweet: ' + previousTweetId)
 
       const tweet: Tweet = await sendTweet(
-        getTweetText(data.Date, data.Doses_Distributed, data.Doses_Administered, headline),
+        getTweetText(
+          data.Date,
+          data.Doses_Distributed,
+          data.Administered_Dose1,
+          data.Administered_Dose2,
+          headline,
+        ),
         previousTweetId,
       )
 
@@ -41,7 +49,7 @@ export const runCdcVaccinations = async (location: string, source: Source, headl
 
       await Promise.all([
         insertDataIntoFirestore(data.Date, source, tweet.id_str),
-        insertVaxProgress(data.Doses_Administered, data.Doses_Distributed, source, data.Date),
+        insertVaxProgress(data, source),
       ])
 
       if (location === 'NC') await runProjectedDate(data)
@@ -59,13 +67,15 @@ export const getCdcData = async () => {
 const getTweetText = (
   date: string,
   dosesDistributed: number,
-  dosesAdministered: number,
+  administeredDose1: number,
+  administeredDose2: number,
   headline: string,
 ) => `
 ${headline}
 
 ${formatWithCommas(dosesDistributed)} doses distributed
-${formatWithCommas(dosesAdministered)} doses administered
+${formatWithCommas(administeredDose1)} first doses administered
+${formatWithCommas(administeredDose2)} second doses administered
 
 Source: CDC, ${date}
 `

@@ -15,7 +15,7 @@ export const runProjectedDate = async (data: CdcDataPoint) => {
     console.log('Previous tweet: ' + previousTweetId)
 
     const tweet: Tweet = await sendTweet(
-      getTweetText(data.Doses_Administered, data.Census2019),
+      getTweetText(data.Administered_Dose1, data.Census2019),
       previousTweetId,
     )
 

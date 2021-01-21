@@ -79,6 +79,17 @@ export const getLatest = async (source: Source): Promise<string> => {
   return snapshot.docs[0]?.id
 }
 
+export const get7daysAgo = async (currentDate: string): Promise<number> => {
+  const snapshot = await db
+    .collection('vax-progress')
+    .where('source', '==', 'cdcv_nc')
+    .where('Date', '==', LocalDate.parse(currentDate).minusDays(7).toString())
+    .limit(1)
+    .get()
+
+  return snapshot.docs[0]?.data().Administered_Dose1
+}
+
 // For adhoc purposes
 export const deleteDate = async (date: string) => {
   const snapshot = await db.collection('county-rates').where('date', '==', date).get()

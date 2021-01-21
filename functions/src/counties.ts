@@ -121,7 +121,11 @@ export const getCountyRates = async (end: LocalDate): Promise<Rate[]> => {
   console.timeEnd('counties')
 
   return nc
-    .filter(c => c.date.equals(end.minusDays(7)) || c.date.equals(end))
+    .filter(
+      c =>
+        (c.date.equals(end.minusDays(7)) || c.date.equals(end)) &&
+        c.county.toLowerCase() !== 'unknown',
+    )
     .reduce<{ county: string; start?: number; end?: number; population?: number }[]>(
       (acc, cur) =>
         acc.find(c => c.county === cur.county)
@@ -143,7 +147,8 @@ export const getCountyRates = async (end: LocalDate): Promise<Rate[]> => {
       [],
     )
     .map(c => {
-      if (!c.start || !c.end || !c.population) throw new Error('Incomplete data')
+      if (!c.start || !c.end || !c.population)
+        throw new Error('Incomplete data' + JSON.stringify(c))
       else return { county: c.county, rate: ((c.end - c.start) * 100000) / (c.population * 7) }
     })
 }

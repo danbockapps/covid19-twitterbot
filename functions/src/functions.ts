@@ -105,14 +105,14 @@ const getMetricTweetText = (
   data: StateDay[],
   metric: 'newCases' | 'newDeaths',
 ) => `${formatWithCommas(data[0][metric])}: New for ${getFormattedDate(data[0].date)}
-${getAverage(data, 0, 7, metric)}: 7 day avg for ${getFormattedDate(
+${getAverageWithCommas(data, 0, 7, metric)}: 7 day avg for ${getFormattedDate(
   data[6].date,
 )} to ${getFormattedDate(data[0].date)}
-${getAverage(data, 7, 14, metric)}: 7 day avg for ${getFormattedDate(
+${getAverageWithCommas(data, 7, 14, metric)}: 7 day avg for ${getFormattedDate(
   data[13].date,
 )} to ${getFormattedDate(data[7].date)}
-${getAverage(data, 0, 30, metric)}: 30 day avg
-${getAverage(data, 0, 90, metric)}: 90 day avg
+${getAverageWithCommas(data, 0, 30, metric)}: 30 day avg
+${getAverageWithCommas(data, 0, 90, metric)}: 90 day avg
 `
 
 const getAverage = (
@@ -121,10 +121,15 @@ const getAverage = (
   endIndex: number,
   property: 'newCases' | 'newDeaths',
 ) =>
-  formatWithCommas(
-    array.slice(startIndex, endIndex).reduce((total, el) => total + (el[property] || 0), 0) /
-      (endIndex - startIndex),
-  )
+  array.slice(startIndex, endIndex).reduce((total, el) => total + (el[property] || 0), 0) /
+  (endIndex - startIndex)
+
+const getAverageWithCommas = (
+  array: StateDay[],
+  startIndex: number,
+  endIndex: number,
+  property: 'newCases' | 'newDeaths',
+) => formatWithCommas(getAverage(array, startIndex, endIndex, property))
 
 const getFormattedDate = (localDate: LocalDate) =>
   localDate.format(DateTimeFormatter.ofPattern('M/d'))

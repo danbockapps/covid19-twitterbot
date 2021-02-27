@@ -10,7 +10,7 @@ interface RankData {
   rank?: number
 }
 
-export const runVaxDayRank = async (newDate: LocalDate) => {
+export const runVaxDayRank = async (newDate: string) => {
   const data = await getAllNcVax()
   const rankData = data
     .map(e => ({
@@ -20,9 +20,11 @@ export const runVaxDayRank = async (newDate: LocalDate) => {
     .filter(e => e.newDoses && e.date !== undefined)
     .sort((a, b) => b.newDoses - a.newDoses)
     .reduce<RankData>(
-      (acc, cur, i) => (cur.date?.equals(newDate) ? { ...cur, rank: i + 1 } : acc),
+      (acc, cur, i) => (cur.date?.equals(LocalDate.parse(newDate)) ? { ...cur, rank: i + 1 } : acc),
       { newDoses: 0 },
     )
+
+  console.log('rankData', JSON.stringify(rankData))
 
   if (rankData.date && rankData.newDoses && rankData.rank) {
     const tweetResult = await sendTweet(getVaxDayRankTweetText(rankData))

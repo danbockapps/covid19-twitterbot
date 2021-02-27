@@ -35,6 +35,12 @@ export const cdcVaccinationsNc = functions.pubsub
   .onRun(() => runCdcVaccinations('NC', 'cdcv_nc', '💉 COVID-19 VACCINATIONS (NC) 🌲'))
 
 export const vaxDayRank = functions.firestore.document('vax-progress/{id}').onCreate(snap => {
-  console.log('Running runVaxDayRank.')
-  return runVaxDayRank(snap.data().Date)
+  const data = snap.data()
+  if (data.source === 'cdcv_nc') {
+    console.log('Running runVaxDayRank. ' + JSON.stringify(data))
+    return runVaxDayRank(data.Date)
+  } else {
+    console.log('Not running runVaxDayRank. ' + JSON.stringify(data))
+    return
+  }
 })

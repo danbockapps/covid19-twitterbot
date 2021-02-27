@@ -24,6 +24,8 @@ export const runVaxDayRank = async (newDate: LocalDate) => {
       { newDoses: 0 },
     )
 
+  console.log('rankData', JSON.stringify(rankData))
+
   if (rankData.date && rankData.newDoses && rankData.rank) {
     const tweetResult = await sendTweet(getVaxDayRankTweetText(rankData))
     console.log({ tweetResult })

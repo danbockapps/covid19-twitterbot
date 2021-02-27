@@ -41,6 +41,6 @@ export const vaxDayRank = functions.firestore.document('vax-progress/{id}').onCr
     return runVaxDayRank(data.Date)
   } else {
     console.log('Not running runVaxDayRank. ' + JSON.stringify(data))
-    return
+    return 0
   }
 })

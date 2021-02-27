@@ -3,6 +3,7 @@ import { runCdcVaccinations } from './cdcvaccinations'
 import { runCounties } from './counties'
 import { runNyt } from './functions'
 import { runScreenshot } from './screenshot'
+import { runVaxDayRank } from './vaxDayRank'
 
 const NY = 'America/New_York'
 
@@ -32,3 +33,8 @@ export const cdcVaccinationsNc = functions.pubsub
   .schedule('10,25,40,55 8,9,10,11,12,13,14,15,16,17,18,19 * * *')
   .timeZone(NY)
   .onRun(() => runCdcVaccinations('NC', 'cdcv_nc', '💉 COVID-19 VACCINATIONS (NC) 🌲'))
+
+export const vaxDayRank = functions.firestore.document('vax-progress/{id}').onCreate(snap => {
+  console.log('Running runVaxDayRank.')
+  return runVaxDayRank(snap.data().Date)
+})

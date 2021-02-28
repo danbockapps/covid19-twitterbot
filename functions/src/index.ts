@@ -13,16 +13,11 @@ export const screenshot = functions
   .timeZone(NY)
   .onRun(runScreenshot)
 
-export const nyt = functions.pubsub
-  .schedule('*/10 0,1,2,3,4,5,6,7,8,9,10,14,15,16,17,18,19,20,21,22,23 * * *')
+export const nyt = functions
+  .runWith({ memory: '2GB' })
+  .pubsub.schedule('*/10 0,1,2,3,4,5,6,7,8,9,10,14,15,16,17,18,19,20,21,22,23 * * *')
   .timeZone(NY)
   .onRun(runNyt)
-
-export const counties = functions
-  .runWith({ memory: '2GB' })
-  .pubsub.schedule('0 6 * * *')
-  .timeZone(NY)
-  .onRun(runCounties)
 
 export const cdcVaccinations = functions.pubsub
   .schedule('5,20,35,50 8,9,10,11,12,13,14,15,16,17,18,19 * * *')

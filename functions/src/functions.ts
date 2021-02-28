@@ -2,6 +2,7 @@ import { DateTimeFormatter, LocalDate } from '@js-joda/core'
 import axios from 'axios'
 import Papa from 'papaparse'
 import config from './config'
+import { runCounties } from './counties'
 import { dateExistsInFirestore, insertDataIntoFirestore } from './firestore'
 import { sendTweet } from './tweet'
 
@@ -29,6 +30,7 @@ export const runNyt = async () => {
     await Promise.all([
       sendAndLog('1', getEnhancedTweetText(enhanced), maxDate),
       sendAndLog('2', getStateTweetText(stateData), maxDate),
+      runCounties(),
     ])
   }
 }

@@ -9,13 +9,13 @@ const NY = 'America/New_York'
 
 export const screenshot = functions
   .runWith({ memory: '2GB' })
-  .pubsub.schedule('*/15 11,12,13 * * *')
+  .pubsub.schedule('30 12,14 * * *')
   .timeZone(NY)
   .onRun(runScreenshot)
 
 export const nyt = functions
   .runWith({ memory: '2GB' })
-  .pubsub.schedule('*/10 0,1,2,3,4,5,6,7,8,9,10,14,15,16,17,18,19,20,21,22,23 * * *')
+  .pubsub.schedule('0 1,3,5,6,7,8,9,11,13,15,17,19,23 * * *')
   .timeZone(NY)
   .onRun(runNyt)
 

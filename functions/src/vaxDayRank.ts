@@ -28,7 +28,7 @@ export const runVaxDayRank = async (newDate: string) => {
 
   if (rankData.date && rankData.newDoses && rankData.rank) {
     const tweetResult = await sendTweet(getVaxDayRankTweetText(rankData))
-    console.log({ tweetResult })
+    console.log(JSON.stringify(tweetResult))
   }
 }
 
@@ -37,6 +37,7 @@ export const getVaxDayRankTweetText: (data: RankData) => string = ({ date, newDo
     ? `${
         rank === 1
           ? `🚨 NEW RECORD SET TODAY 🚨
+💃🏾 📣 😃 💉 🏆 🥳 ✅ 🕺🏼 👍🏿 🦾 🎷 🥁
     
 `
           : 'New '

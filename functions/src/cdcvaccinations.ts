@@ -1,4 +1,5 @@
 import Axios from 'axios'
+import { runDistribution } from './distribution'
 import {
   dateExistsInFirestore,
   getLatest,
@@ -19,6 +20,9 @@ export interface CdcDataPoint {
   Administered_Dose1_Recip?: number
   Administered_Dose2_Recip?: number
   Census2019: number
+  Distributed_Moderna: number
+  Distributed_Pfizer: number
+  Distributed_Janssen: number
 }
 
 export const runCdcVaccinations = async (location: string, source: Source, headline: string) => {
@@ -53,6 +57,7 @@ export const runCdcVaccinations = async (location: string, source: Source, headl
         ])
 
         if (location === 'NC') await runProjectedDate(data)
+        else await runDistribution(data)
       } else console.error('No ad1 or no ad2')
     } else console.log(`We already tweeted for ${data.Date}.`)
   } else console.log('Data is not usable.')

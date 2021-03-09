@@ -87,7 +87,8 @@ export const get7daysAgo = async (currentDate: string): Promise<number> => {
     .limit(1)
     .get()
 
-  return snapshot.docs[0]?.data().Administered_Dose1
+  const { Administered_Dose1, Administered_Dose1_Recip } = snapshot.docs[0]?.data()
+  return Administered_Dose1 || Administered_Dose1_Recip
 }
 
 export const getAllNcVax = async () => {
@@ -97,9 +98,11 @@ export const getAllNcVax = async () => {
       try {
         return {
           date: LocalDate.parse(doc.data().Date || ''),
-          dose1total: doc.data().Administered_Dose1,
+          dose1total: doc.data().Administered_Dose1 || doc.data().Administered_Dose1_Recip,
         }
-      } catch (e) {}
+      } catch (e) {
+        console.error(e)
+      }
     })
     .filter(d => d)
 }

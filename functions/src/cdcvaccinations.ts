@@ -14,8 +14,10 @@ export interface CdcDataPoint {
   Location: string
   Doses_Distributed: number
   Doses_Administered: number
-  Administered_Dose1: number
-  Administered_Dose2: number
+  Administered_Dose1?: number
+  Administered_Dose2?: number
+  Administered_Dose1_Recip?: number
+  Administered_Dose2_Recip?: number
   Census2019: number
 }
 
@@ -34,25 +36,24 @@ export const runCdcVaccinations = async (location: string, source: Source, headl
       const previousTweetId = await getLatest(source)
       console.log('Previous tweet: ' + previousTweetId)
 
-      const tweet: Tweet = await sendTweet(
-        getTweetText(
-          data.Date,
-          data.Doses_Distributed,
-          data.Administered_Dose1,
-          data.Administered_Dose2,
-          headline,
-        ),
-        previousTweetId,
-      )
+      let ad1 = data.Administered_Dose1 || data.Administered_Dose1_Recip
+      let ad2 = data.Administered_Dose2 || data.Administered_Dose2_Recip
 
-      console.log('Saving date...')
+      if (ad1 && ad2) {
+        const tweet: Tweet = await sendTweet(
+          getTweetText(data.Date, data.Doses_Distributed, ad1, ad2, headline),
+          previousTweetId,
+        )
 
-      await Promise.all([
-        insertDataIntoFirestore(data.Date, source, tweet.id_str),
-        insertVaxProgress(data, source),
-      ])
+        console.log('Saving date...')
 
-      if (location === 'NC') await runProjectedDate(data)
+        await Promise.all([
+          insertDataIntoFirestore(data.Date, source, tweet.id_str),
+          insertVaxProgress(data, source),
+        ])
+
+        if (location === 'NC') await runProjectedDate(data)
+      } else console.error('No ad1 or no ad2')
     } else console.log(`We already tweeted for ${data.Date}.`)
   } else console.log('Data is not usable.')
 }

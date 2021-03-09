@@ -8,7 +8,9 @@ import { sendTweet } from './tweet'
 export const runProjectedDate = async (data: CdcDataPoint) => {
   console.log('data for runProjectedDate', JSON.stringify(data))
 
-  if (data && data.Date && data.Administered_Dose1 && data.Census2019) {
+  const ad1 = data.Administered_Dose1 || data.Administered_Dose1_Recip
+
+  if (data && data.Date && ad1 && data.Census2019) {
     const [previousTweetId, dose1lastWeek] = await Promise.all([
       (async () => await getLatest('projected'))(),
       (async () => await get7daysAgo(data.Date))(),
@@ -19,12 +21,7 @@ export const runProjectedDate = async (data: CdcDataPoint) => {
 
     if (previousTweetId && dose1lastWeek) {
       const tweet: Tweet = await sendTweet(
-        getTweetText(
-          LocalDate.parse(data.Date),
-          data.Administered_Dose1,
-          dose1lastWeek,
-          data.Census2019,
-        ),
+        getTweetText(LocalDate.parse(data.Date), ad1, dose1lastWeek, data.Census2019),
         previousTweetId,
       )
 

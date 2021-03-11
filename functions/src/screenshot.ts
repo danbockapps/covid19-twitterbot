@@ -50,6 +50,8 @@ const checkDateAndRun = async (page: Page) => {
   const updated = (await innerHandle.jsonValue()) as string
   console.timeEnd('value')
 
+  console.log('updated', updated)
+
   console.time('dateExistsInFirestore')
   const dateExists = await dateExistsInFirestore(getDateFromLastUpdate(updated), 'ncdhhs')
   console.timeEnd('dateExistsInFirestore')
@@ -119,5 +121,8 @@ const getDateFromLastUpdate = (value: string) => {
   const dateStart = value.indexOf('Last updated ') + 13
   const dateEnd = value.indexOf(`${new Date().getFullYear()}`) + 4
   const longDate = value.substring(dateStart, dateEnd)
-  return new Date(longDate).toISOString().substr(0, 10)
+  console.log('longDate', longDate)
+  const shortDate = new Date(longDate).toISOString().substr(0, 10)
+  console.log('shortDate', shortDate)
+  return shortDate
 }

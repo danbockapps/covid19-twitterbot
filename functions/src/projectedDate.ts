@@ -1,5 +1,5 @@
 import { LocalDate } from '@js-joda/core'
-import { CdcDataPoint } from './cdcvaccinations'
+import { CdcDataPoint, getDose1Count } from './cdcvaccinations'
 import { roundOff } from './counties'
 import { get7daysAgo, getLatest, insertDataIntoFirestore } from './firestore'
 import { Tweet } from './functions'
@@ -8,7 +8,7 @@ import { sendTweet } from './tweet'
 export const runProjectedDate = async (data: CdcDataPoint) => {
   console.log('data for runProjectedDate', JSON.stringify(data))
 
-  const ad1 = data.Administered_Dose1 || data.Administered_Dose1_Recip
+  const ad1 = getDose1Count(data)
 
   if (data && data.Date && ad1 && data.Census2019) {
     const [previousTweetId, dose1lastWeek] = await Promise.all([

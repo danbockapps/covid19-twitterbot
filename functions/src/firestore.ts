@@ -1,6 +1,6 @@
 import { LocalDate } from '@js-joda/core'
 import admin from 'firebase-admin'
-import { CdcDataPoint } from './cdcvaccinations'
+import { CdcDataPoint, getDose1Count } from './cdcvaccinations'
 import { Rate } from './counties'
 import { Source } from './functions'
 
@@ -87,23 +87,16 @@ export const get7daysAgo = async (currentDate: string): Promise<number> => {
     .limit(1)
     .get()
 
-  const { Administered_Dose1, Administered_Dose1_Recip } = snapshot.docs[0]?.data()
-  return Administered_Dose1 || Administered_Dose1_Recip
+  return getDose1Count(snapshot.docs[0]?.data() as CdcDataPoint)
 }
 
 export const getAllNcVax = async () => {
   const snapshot = await db.collection('vax-progress').where('source', '==', 'cdcv_nc').get()
   return snapshot.docs
-    .map(doc => {
-      try {
-        return {
-          date: LocalDate.parse(doc.data().Date || ''),
-          dose1total: doc.data().Administered_Dose1 || doc.data().Administered_Dose1_Recip,
-        }
-      } catch (e) {
-        console.error(e)
-      }
-    })
+    .map(doc => ({
+      date: LocalDate.parse(doc.data().Date || ''),
+      dose1total: getDose1Count(doc.data() as CdcDataPoint),
+    }))
     .filter(d => d)
 }
 

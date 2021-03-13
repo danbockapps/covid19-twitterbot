@@ -15,7 +15,8 @@ export const runVaxDayRank = async (newDate: string) => {
   const rankData = data
     .map(e => ({
       date: e?.date,
-      newDoses: e?.dose1total - data.find(d => d?.date.equals(e?.date.minusDays(1)))?.dose1total,
+      newDoses:
+        e?.dose1total - (data.find(d => d?.date.equals(e?.date.minusDays(1)))?.dose1total || 0),
     }))
     .filter(e => e.newDoses && e.date !== undefined)
     .sort((a, b) => b.newDoses - a.newDoses)

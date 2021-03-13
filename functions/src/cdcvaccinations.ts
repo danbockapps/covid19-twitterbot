@@ -23,6 +23,9 @@ export interface CdcDataPoint {
   Distributed_Moderna: number
   Distributed_Pfizer: number
   Distributed_Janssen: number
+  Series_Complete_Moderna: number
+  Series_Complete_Pfizer: number
+  Series_Complete_Yes: number
 }
 
 export const runCdcVaccinations = async (location: string, source: Source, headline: string) => {
@@ -40,12 +43,13 @@ export const runCdcVaccinations = async (location: string, source: Source, headl
       const previousTweetId = await getLatest(source)
       console.log('Previous tweet: ' + previousTweetId)
 
-      let ad1 = data.Administered_Dose1 || data.Administered_Dose1_Recip
-      let ad2 = data.Administered_Dose2 || data.Administered_Dose2_Recip
+      let ad1 = getDose1Count(data)
+      let sc = getSeriesComplete(data)
 
-      if (ad1 && ad2) {
+      if (ad1 && sc) {
+        console.log(getTweetText(data.Date, data.Doses_Distributed, ad1, sc, headline))
         const tweet: Tweet = await sendTweet(
-          getTweetText(data.Date, data.Doses_Distributed, ad1, ad2, headline),
+          getTweetText(data.Date, data.Doses_Distributed, ad1, sc, headline),
           previousTweetId,
         )
 
@@ -63,6 +67,13 @@ export const runCdcVaccinations = async (location: string, source: Source, headl
   } else console.log('Data is not usable.')
 }
 
+export const getDose1Count = (data: CdcDataPoint) =>
+  data.Administered_Dose1 ||
+  data.Doses_Administered - data.Series_Complete_Moderna - data.Series_Complete_Pfizer
+
+export const getSeriesComplete = (data: CdcDataPoint) =>
+  data.Administered_Dose2 || data.Series_Complete_Yes
+
 export const getCdcData = async () => {
   const response = await Axios.get<{ vaccination_data: CdcDataPoint[] }>(
     'https://covid.cdc.gov/covid-data-tracker/COVIDData/getAjaxData?id=vaccination_data',
@@ -74,14 +85,13 @@ const getTweetText = (
   date: string,
   dosesDistributed: number,
   administeredDose1: number,
-  administeredDose2: number,
+  seriesComplete: number,
   headline: string,
-) => `
-${headline}
+) => `${headline}
 
 ${formatWithCommas(dosesDistributed)} doses distributed
 ${formatWithCommas(administeredDose1)} first doses administered
-${formatWithCommas(administeredDose2)} second doses administered
+${formatWithCommas(seriesComplete)} people fully vaccinated
 
 Source: CDC, ${date}
 `

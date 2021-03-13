@@ -13,13 +13,14 @@ interface RankData {
 export const runVaxDayRank = async (newDate: string) => {
   const data = await getAllNcVax()
   const rankData = data
-    .map(e => ({
-      date: e?.date,
-      newDoses:
-        e?.dose1total - (data.find(d => d?.date.equals(e?.date.minusDays(1)))?.dose1total || 0),
-    }))
-    .filter(e => e.newDoses && e.date !== undefined)
-    .sort((a, b) => b.newDoses - a.newDoses)
+    .map(e => {
+      const dayBefore = data.find(d => d?.date.equals(e?.date.minusDays(1)))
+      if (e?.dose1total && dayBefore?.dose1total)
+        return { date: e?.date, newDoses: e.dose1total - dayBefore.dose1total }
+      else return { date: undefined, newDoses: undefined }
+    })
+    .filter(e => e.date !== undefined && e.newDoses !== undefined)
+    .sort((a, b) => b.newDoses! - a.newDoses!)
     .reduce<RankData>(
       (acc, cur, i) => (cur.date?.equals(LocalDate.parse(newDate)) ? { ...cur, rank: i + 1 } : acc),
       { newDoses: 0 },

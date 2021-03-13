@@ -93,10 +93,16 @@ export const get7daysAgo = async (currentDate: string): Promise<number> => {
 export const getAllNcVax = async () => {
   const snapshot = await db.collection('vax-progress').where('source', '==', 'cdcv_nc').get()
   return snapshot.docs
-    .map(doc => ({
-      date: LocalDate.parse(doc.data().Date || ''),
-      dose1total: getDose1Count(doc.data() as CdcDataPoint),
-    }))
+    .map(doc => {
+      try {
+        return {
+          date: LocalDate.parse(doc.data().Date || ''),
+          dose1total: getDose1Count(doc.data() as CdcDataPoint),
+        }
+      } catch (e) {
+        // Data is missing date - array element will be undefined and filtered out in next step
+      }
+    })
     .filter(d => d)
 }
 

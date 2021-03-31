@@ -24,12 +24,14 @@ const getTweetText = (
   janssen: number,
 ) => `🚚 VACCINE DISTRIBUTION (USA) 🚚
 
-${getDatapoint('Pfizer', pfizer, 120000000)}
+${getDatapoint('Pfizer', pfizer, 200000000, 'May 31')}
 
-${getDatapoint('Moderna', moderna, 100000000)}
+${getDatapoint('Moderna', moderna, 200000000, 'May 31')}
 
-${getDatapoint('Johnson & Johnson', janssen, 20000000)}`
+${getDatapoint('Johnson & Johnson', janssen, 100000000, 'June 30')}`
 
-const getDatapoint = (name: string, dist: number, goal: number) =>
+const getDatapoint = (name: string, dist: number, goal: number, goalDate: string) =>
   `${name}:
-${formatWithCommas(dist)} doses distributed. (${Math.round((dist * 100) / goal)}% of March 31 goal)`
+${formatWithCommas(dist)} doses distributed. (${Math.round(
+    (dist * 100) / goal,
+  )}% of ${goalDate} goal)`

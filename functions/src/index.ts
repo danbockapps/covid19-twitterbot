@@ -1,6 +1,5 @@
 import * as functions from 'firebase-functions'
 import { runCdcVaccinations } from './cdcvaccinations'
-import { runCounties } from './counties'
 import { runNyt } from './functions'
 import { runScreenshot } from './screenshot'
 import { runVaxDayRank } from './vaxDayRank'
@@ -9,13 +8,13 @@ const NY = 'America/New_York'
 
 export const screenshot = functions
   .runWith({ memory: '2GB' })
-  .pubsub.schedule('30 12,14 * * *')
+  .pubsub.schedule('30 12,14 * * Mon,Tue,Wed,Thu,Fri')
   .timeZone(NY)
   .onRun(runScreenshot)
 
 export const nyt = functions
   .runWith({ memory: '2GB' })
-  .pubsub.schedule('0 1,3,5,6,7,8,9,11,13,15,17,19,23 * * *')
+  .pubsub.schedule('0 0,1,3,5,6,7,8,9,11,13 * * *')
   .timeZone(NY)
   .onRun(runNyt)
 

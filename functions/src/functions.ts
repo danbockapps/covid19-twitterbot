@@ -27,11 +27,14 @@ export const runNyt = async () => {
     const empty = getEmptyStateDayArray(LocalDate.parse(maxDate))
     const filled = getFilledArray(empty, stateData)
     const enhanced = getEnhancedArray(filled)
-    await Promise.all([
-      sendAndLog('1', getEnhancedTweetText(enhanced), maxDate),
-      sendAndLog('2', getStateTweetText(stateData), maxDate),
-      runCounties(),
-    ])
+
+    if (enhanced[0].newCases || enhanced[0].newDeaths)
+      await Promise.all([
+        sendAndLog('1', getEnhancedTweetText(enhanced), maxDate),
+        sendAndLog('2', getStateTweetText(stateData), maxDate),
+        runCounties(true),
+      ])
+    else await runCounties(false)
   }
 }
 

@@ -4,7 +4,7 @@ import { CountyDay, getStateData, RawCountyDay } from './functions'
 import population from './population'
 import { sendTweet } from './tweet'
 
-export const runCounties = async () => {
+export const runCounties = async (tweet: boolean) => {
   try {
     const endDate = LocalDate.now().minusDays(1)
 
@@ -25,17 +25,22 @@ export const runCounties = async () => {
 
     console.log('oldRates.length', oldRates.length, 'newRates.length', newRates.length)
 
+    // TODO we don't need newRates if tweet === false
     if (oldRates.length === 100 && newRates.length === 100)
       return await Promise.all([
         (async () => {
-          console.log('Starting sendTweet')
-          await sendTweet(getTweetText(mergeRates(oldRates, newRates), 0, ''))
-          console.log('Ending sendTweet')
+          if (tweet) {
+            console.log('Starting sendTweet')
+            await sendTweet(getTweetText(mergeRates(oldRates, newRates), 0, ''))
+            console.log('Ending sendTweet')
+          }
         })(),
         (async () => {
-          console.log('Starting sendTweet for big cos')
-          await sendTweet(getBigCosTweetText(mergeRates(oldRates, newRates), 0, ''))
-          console.log('Ending sendTweet for big cos')
+          if (tweet) {
+            console.log('Starting sendTweet for big cos')
+            await sendTweet(getBigCosTweetText(mergeRates(oldRates, newRates), 0, ''))
+            console.log('Ending sendTweet for big cos')
+          }
         })(),
         (async () => {
           console.log('Starting saveAllRates')

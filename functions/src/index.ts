@@ -12,11 +12,12 @@ export const screenshot = functions
   .timeZone(NY)
   .onRun(runScreenshot)
 
-export const nyt = functions
-  .runWith({ memory: '2GB' })
-  .pubsub.schedule('0 0,1,3,5,6,7,8,9,11,13 * * *')
-  .timeZone(NY)
-  .onRun(runNyt)
+// June 2021 - this is adhoc for now
+// export const nyt = functions
+//   .runWith({ memory: '2GB' })
+//   .pubsub.schedule('0 0,1,3,5,6,7 * * *')
+//   .timeZone(NY)
+//   .onRun(runNyt)
 
 export const cdcVaccinations = functions.pubsub
   .schedule('5,20,35,50 8,9,10,11,12,13,14,15,16,17,18,19 * * *')

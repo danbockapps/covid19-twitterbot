@@ -25,6 +25,12 @@ export const insertDataIntoFirestore = (date: string, source: Source, tweetId: s
     created: admin.firestore.FieldValue.serverTimestamp(),
   })
 
+export const insertPlaceholder = (date: string, source: Source) =>
+  db
+    .collection('tweets')
+    .doc()
+    .set({ date, source, created: admin.firestore.FieldValue.serverTimestamp() })
+
 export const insertVaxProgress = (data: CdcDataPoint, source: Source) =>
   db
     .collection('vax-progress')

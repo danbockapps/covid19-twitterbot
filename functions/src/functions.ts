@@ -38,7 +38,7 @@ export const runNyt = async () => {
   }
 }
 
-const sendAndLog = async (id: string, text: string, date: string) => {
+export const sendAndLog = async (id: string, text: string, date: string) => {
   try {
     console.log(`Sending tweet ${id}...`)
     const tweet: Tweet = await sendTweet(text)
@@ -59,7 +59,7 @@ export const getDateArray = (end: LocalDate) => {
   return returnable
 }
 
-const getEmptyStateDayArray: (end: LocalDate) => StateDay[] = end =>
+export const getEmptyStateDayArray: (end: LocalDate) => StateDay[] = end =>
   getDateArray(end).map(date => ({
     date,
     state: '',
@@ -68,7 +68,7 @@ const getEmptyStateDayArray: (end: LocalDate) => StateDay[] = end =>
     deaths: 0,
   }))
 
-const getFilledArray: (empty: StateDay[], raw: StateDay[]) => StateDay[] = (empty, raw) => {
+export const getFilledArray: (empty: StateDay[], raw: StateDay[]) => StateDay[] = (empty, raw) => {
   const returnable: StateDay[] = []
   empty.forEach(day => {
     const rawOfDate = raw.find(rawDay => rawDay.date.isEqual(day.date))
@@ -84,7 +84,7 @@ const getFilledArray: (empty: StateDay[], raw: StateDay[]) => StateDay[] = (empt
 }
 
 // pass in sorted array that has no gaps
-const getEnhancedArray = (stateDays: StateDay[]) => {
+export const getEnhancedArray = (stateDays: StateDay[]) => {
   const returnable: StateDay[] = []
   for (let i = 0; i < stateDays.length - 1; i++) {
     returnable.push({
@@ -96,7 +96,10 @@ const getEnhancedArray = (stateDays: StateDay[]) => {
   return returnable
 }
 
-const getEnhancedTweetText = (enhanced: StateDay[]) => `CASES ${getGraphEmoji(enhanced, 'newCases')}
+export const getEnhancedTweetText = (enhanced: StateDay[]) => `CASES ${getGraphEmoji(
+  enhanced,
+  'newCases',
+)}
 ${getMetricTweetText(enhanced, 'newCases')}
 
 DEATHS ${getGraphEmoji(enhanced, 'newDeaths')}

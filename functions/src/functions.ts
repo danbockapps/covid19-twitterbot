@@ -2,9 +2,38 @@ import { DateTimeFormatter, LocalDate } from '@js-joda/core'
 import axios from 'axios'
 import Papa from 'papaparse'
 import config from './config'
-import { runCounties } from './counties'
-import { dateExistsInFirestore, insertDataIntoFirestore } from './firestore'
+import { getCountyRates, runCounties } from './counties'
+import {
+  dateExistsInCountyRates,
+  dateExistsInFirestore,
+  insertDataIntoFirestore,
+  saveAllRates,
+} from './firestore'
 import { sendTweet } from './tweet'
+
+// New function 6/28/2021
+export const runPopulateCountyRates = async () => {
+  if (!config.STATE) throw 'STATE not found in env variables.'
+
+  console.log('Getting data...')
+  const stateData = await getStateData(config.STATE, 'states')
+
+  console.log(`${stateData.length} rows. Calculating max date...`)
+  const maxDate = getMaxDate(stateData)
+
+  console.log(`Max date is ${maxDate}. Checking database...`)
+  const exists = await dateExistsInCountyRates(maxDate)
+
+  if (exists) console.log('Date already exists in database.')
+  else {
+    console.log('Date not found in database. Getting county rates...')
+    const localDate = LocalDate.parse(maxDate)
+    const newRates = await getCountyRates(localDate)
+
+    console.log('Saving county rates...')
+    await saveAllRates(newRates, localDate)
+  }
+}
 
 export const runNyt = async () => {
   if (!config.STATE) {

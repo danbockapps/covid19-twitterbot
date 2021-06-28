@@ -52,6 +52,11 @@ export const dateExistsInFirestore = async (date: string, source: Source) => {
   return !snapshot.empty
 }
 
+export const dateExistsInCountyRates = async (date: string) => {
+  const snapshot = await db.collection('county-rates').where('date', '==', date).limit(1).get()
+  return !snapshot.empty
+}
+
 export const saveAllRates = async (rates: Rate[], date: LocalDate) => {
   let batch = db.batch()
 

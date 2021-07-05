@@ -6,8 +6,8 @@ import { getCountyRates } from './counties'
 import { dateExistsInCountyRates, insertDataIntoFirestore, saveAllRates } from './firestore'
 import { sendTweet } from './tweet'
 
-// New function 6/28/2021
-export const runPopulateCountyRates = async () => {
+export const runNyt = async () => {
+  // Get state data. If new, tweet it and save but don't tweet county data
   if (!config.STATE) throw 'STATE not found in env variables.'
 
   console.log('Getting data...')
@@ -19,20 +19,29 @@ export const runPopulateCountyRates = async () => {
   console.log(`Max date is ${maxDate}. Checking database...`)
   const exists = await dateExistsInCountyRates(maxDate)
 
-  if (exists) console.log('Date already exists in database.')
-  else {
-    console.log('Date not found in database. Getting county rates...')
-    const localDate = LocalDate.parse(maxDate)
-    const newRates = await getCountyRates(localDate)
-
-    console.log('Saving county rates...')
-    await saveAllRates(newRates, localDate)
+  if (exists) {
+    console.log('Date already exists in database.')
+    return
   }
+
+  const localDate = LocalDate.parse(maxDate)
+
+  await Promise.all([
+    asyncAndLog(() => getAndSaveCountyRates(localDate), 'getAndSaveCountyRates'),
+    asyncAndLog(() => tweetNyt(stateData), 'tweetNyt'),
+  ])
 }
 
-export const runNyt = async () => {
-  /*
-  console.log('Date not found in database.')
+const getAndSaveCountyRates = async (localDate: LocalDate) => {
+  console.log('Getting county rates...')
+  const newRates = await getCountyRates(localDate)
+  console.log('Saving county rates...')
+  await saveAllRates(newRates, localDate)
+}
+
+export const tweetNyt = async (stateData: StateDay[]) => {
+  const maxDate = getMaxDate(stateData)
+
   const empty = getEmptyStateDayArray(LocalDate.parse(maxDate))
   const filled = getFilledArray(empty, stateData)
   const enhanced = getEnhancedArray(filled)
@@ -41,7 +50,7 @@ export const runNyt = async () => {
     await Promise.all([
       sendAndLog(getEnhancedTweetText(enhanced), maxDate, 'nyt_enhanced'),
       sendAndLog(getStateTweetText(stateData), maxDate, 'nyt'),
-    ])*/
+    ])
 }
 
 export const sendAndLog = async (text: string, date: string, source: Source) => {

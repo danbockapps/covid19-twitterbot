@@ -1,7 +1,7 @@
 import * as functions from 'firebase-functions'
 import { runCdcVaccinations } from './cdcvaccinations'
 import { runCounties } from './counties'
-import { runPopulateCountyRates } from './functions'
+import { runNyt } from './functions'
 import { runScreenshot } from './screenshot'
 import { runVaxDayRank } from './vaxDayRank'
 
@@ -13,18 +13,11 @@ export const screenshot = functions
   .timeZone(NY)
   .onRun(runScreenshot)
 
-// June 2021 - this is adhoc for now
-// export const nyt = functions
-//   .runWith({ memory: '2GB' })
-//   .pubsub.schedule('0 0,1,3,5,6,7 * * *')
-//   .timeZone(NY)
-//   .onRun(runNyt)
-
-export const populateCountyRates = functions
+export const nyt = functions
   .runWith({ memory: '2GB' })
   .pubsub.schedule('44 * * * *')
   .timeZone(NY)
-  .onRun(runPopulateCountyRates)
+  .onRun(runNyt)
 
 export const counties = functions.pubsub.schedule('45 * * * *').timeZone(NY).onRun(runCounties)
 

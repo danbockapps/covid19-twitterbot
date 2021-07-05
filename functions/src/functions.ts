@@ -52,7 +52,7 @@ export const sendAndLog = async (text: string, date: string, source: Source) => 
     console.log(`Updating database for ${source} tweet...`)
     await insertDataIntoFirestore(date, source, tweet.id_str)
   } catch (e) {
-    console.error(e)
+    console.error(JSON.stringify(e))
   }
 }
 

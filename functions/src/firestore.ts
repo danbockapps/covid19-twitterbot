@@ -57,6 +57,21 @@ export const dateExistsInCountyRates = async (date: string) => {
   return !snapshot.empty
 }
 
+export const getCountyRatesMaxDate = async (): Promise<string> => {
+  const snapshot = await db.collection('county-rates').orderBy('date', 'desc').limit(1).get()
+  return snapshot.docs[0]?.data().date
+}
+
+export const getNytCoMaxDate = async (): Promise<string> => {
+  const snapshot = await db
+    .collection('tweets')
+    .where('source', '==', 'nyt_co')
+    .orderBy('date', 'desc')
+    .limit(1)
+    .get()
+  return snapshot.docs[0]?.data().date
+}
+
 export const saveAllRates = async (rates: Rate[], date: LocalDate) => {
   let batch = db.batch()
 

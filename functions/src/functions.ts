@@ -2,13 +2,8 @@ import { DateTimeFormatter, LocalDate } from '@js-joda/core'
 import axios from 'axios'
 import Papa from 'papaparse'
 import config from './config'
-import { getCountyRates, runCounties } from './counties'
-import {
-  dateExistsInCountyRates,
-  dateExistsInFirestore,
-  insertDataIntoFirestore,
-  saveAllRates,
-} from './firestore'
+import { getCountyRates } from './counties'
+import { dateExistsInCountyRates, insertDataIntoFirestore, saveAllRates } from './firestore'
 import { sendTweet } from './tweet'
 
 // New function 6/28/2021
@@ -36,47 +31,36 @@ export const runPopulateCountyRates = async () => {
 }
 
 export const runNyt = async () => {
-  if (!config.STATE) {
-    throw 'STATE not found in env variables.'
-  }
+  /*
+  console.log('Date not found in database.')
+  const empty = getEmptyStateDayArray(LocalDate.parse(maxDate))
+  const filled = getFilledArray(empty, stateData)
+  const enhanced = getEnhancedArray(filled)
 
-  console.log('Getting data...')
-  const stateData = await getStateData(config.STATE, 'states')
-
-  console.log(`${stateData.length} rows. Calculating max date...`)
-  const maxDate = getMaxDate(stateData)
-
-  console.log(`Max date is ${maxDate}. Checking database...`)
-  const exists = await dateExistsInFirestore(maxDate, 'nyt')
-
-  if (exists) {
-    console.log('Date already exists in database. No new tweet.')
-  } else {
-    console.log('Date not found in database.')
-    const empty = getEmptyStateDayArray(LocalDate.parse(maxDate))
-    const filled = getFilledArray(empty, stateData)
-    const enhanced = getEnhancedArray(filled)
-
-    if (enhanced[0].newCases || enhanced[0].newDeaths)
-      await Promise.all([
-        sendAndLog('1', getEnhancedTweetText(enhanced), maxDate),
-        sendAndLog('2', getStateTweetText(stateData), maxDate),
-        runCounties(true),
-      ])
-    else await runCounties(false)
-  }
+  if (enhanced[0].newCases || enhanced[0].newDeaths)
+    await Promise.all([
+      sendAndLog(getEnhancedTweetText(enhanced), maxDate, 'nyt_enhanced'),
+      sendAndLog(getStateTweetText(stateData), maxDate, 'nyt'),
+    ])*/
 }
 
-export const sendAndLog = async (id: string, text: string, date: string) => {
+export const sendAndLog = async (text: string, date: string, source: Source) => {
   try {
-    console.log(`Sending tweet ${id}...`)
+    console.log(`Sending ${source} tweet...`)
     const tweet: Tweet = await sendTweet(text)
 
-    console.log(`Updating database for tweet ${id}...`)
-    await insertDataIntoFirestore(date, 'nyt', tweet.id_str)
+    console.log(`Updating database for ${source} tweet...`)
+    await insertDataIntoFirestore(date, source, tweet.id_str)
   } catch (e) {
     console.error(e)
   }
+}
+
+export const asyncAndLog = async function <T>(call: () => Promise<T>, desc: string): Promise<T> {
+  console.log(new Date().toISOString(), desc, 'start')
+  const returnable: T = await call()
+  console.log(new Date().toISOString(), desc, 'end')
+  return returnable
 }
 
 export const getDateArray = (end: LocalDate) => {
@@ -250,4 +234,13 @@ export interface Tweet {
   id_str: string
 }
 
-export type Source = 'nyt' | 'ncdhhs' | 'cdcv' | 'cdcv_nc' | 'projected' | 'dist'
+export type Source =
+  | 'nyt'
+  | 'nyt_enhanced'
+  | 'nyt_co'
+  | 'nyt_big_co'
+  | 'ncdhhs'
+  | 'cdcv'
+  | 'cdcv_nc'
+  | 'projected'
+  | 'dist'

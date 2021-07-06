@@ -32,6 +32,11 @@ export const runCounties = async () => {
 
   const mergedRates = mergeRates(oldRates, newRates)
 
+  if (!mergedRates.some(r => r.newRate !== r.oldRate)) {
+    console.log('Nothing changed. It might be the weekend.')
+    return
+  }
+
   return await Promise.all([
     asyncAndLog(() => sendAndLog(getCoTweetText(mergedRates), ratesMax, 'nyt_co'), 'co'),
     asyncAndLog(() => sendAndLog(getBigCosTweetText(mergedRates), ratesMax, 'nyt_big_co'), 'bigco'),

@@ -1,4 +1,5 @@
 import { LocalDate } from '@js-joda/core'
+import blueCounties from './blueCounties'
 import { getCountyRatesMaxDate, getNytCoMaxDate, getSavedRates } from './firestore'
 import { asyncAndLog, CountyDay, getStateData, RawCountyDay, sendAndLog } from './functions'
 import population from './population'
@@ -70,7 +71,9 @@ export const mergeRates = (oldRates: Rate[], newRates: Rate[]): MergedRate[] =>
 export const roundOff = (n: number) => Math.round(n * 10) / 10
 
 const getEmoji = (m: MergedRate) =>
-  m.newRate === m.oldRate ? '➡️' : m.newRate > m.oldRate ? '🔺' : '⬇️'
+  `${m.newRate === m.oldRate ? '↔️' : m.newRate > m.oldRate ? '⬆️' : '⬇️'} ${
+    blueCounties.includes(m.county) ? '🔵' : '🔴'
+  }`
 
 export const getCoTweetText = (rates: MergedRate[], pIndex?: number, pText?: string): string => {
   const [index, text] = pIndex && pText ? [pIndex, pText] : [0, '']
@@ -79,11 +82,11 @@ export const getCoTweetText = (rates: MergedRate[], pIndex?: number, pText?: str
     index === 0
       ? `Top NC counties, 7-day avg new cases:
 
-1. ${getEmoji(rates[index])} ${rates[index].county} County: ${roundOff(
+${getEmoji(rates[index])} ${rates[index].county} County: ${roundOff(
           rates[index].newRate,
         )} per 100,000 people`
       : text.concat(`
-${index + 1}. ${getEmoji(rates[index])} ${rates[index].county} ${roundOff(rates[index].newRate)}`)
+${getEmoji(rates[index])} ${rates[index].county} ${roundOff(rates[index].newRate)}`)
 
   if (newText.length > 280) return text
   else return getCoTweetText(rates, index + 1, newText)

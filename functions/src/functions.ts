@@ -2,14 +2,13 @@ import { DateTimeFormatter, LocalDate } from '@js-joda/core'
 import axios from 'axios'
 import Papa from 'papaparse'
 import config from './config'
-import { runCounties } from './counties'
-import { dateExistsInFirestore, insertDataIntoFirestore } from './firestore'
+import { getCountyRates } from './counties'
+import { dateExistsInCountyRates, insertDataIntoFirestore, saveAllRates } from './firestore'
 import { sendTweet } from './tweet'
 
 export const runNyt = async () => {
-  if (!config.STATE) {
-    throw 'STATE not found in env variables.'
-  }
+  // Get state data. If new, tweet it and save but don't tweet county data
+  if (!config.STATE) throw 'STATE not found in env variables.'
 
   console.log('Getting data...')
   const stateData = await getStateData(config.STATE, 'states')
@@ -18,36 +17,59 @@ export const runNyt = async () => {
   const maxDate = getMaxDate(stateData)
 
   console.log(`Max date is ${maxDate}. Checking database...`)
-  const exists = await dateExistsInFirestore(maxDate, 'nyt')
+  const exists = await dateExistsInCountyRates(maxDate)
 
   if (exists) {
-    console.log('Date already exists in database. No new tweet.')
-  } else {
-    console.log('Date not found in database.')
-    const empty = getEmptyStateDayArray(LocalDate.parse(maxDate))
-    const filled = getFilledArray(empty, stateData)
-    const enhanced = getEnhancedArray(filled)
+    console.log('Date already exists in database.')
+    return
+  }
 
-    if (enhanced[0].newCases || enhanced[0].newDeaths)
-      await Promise.all([
-        sendAndLog('1', getEnhancedTweetText(enhanced), maxDate),
-        sendAndLog('2', getStateTweetText(stateData), maxDate),
-        runCounties(true),
-      ])
-    else await runCounties(false)
+  const localDate = LocalDate.parse(maxDate)
+
+  await Promise.all([
+    asyncAndLog(() => getAndSaveCountyRates(localDate), 'getAndSaveCountyRates'),
+    asyncAndLog(() => tweetNyt(stateData), 'tweetNyt'),
+  ])
+}
+
+const getAndSaveCountyRates = async (localDate: LocalDate) => {
+  console.log('Getting county rates...')
+  const newRates = await getCountyRates(localDate)
+  console.log('Saving county rates...')
+  await saveAllRates(newRates, localDate)
+}
+
+export const tweetNyt = async (stateData: StateDay[]) => {
+  const maxDate = getMaxDate(stateData)
+
+  const empty = getEmptyStateDayArray(LocalDate.parse(maxDate))
+  const filled = getFilledArray(empty, stateData)
+  const enhanced = getEnhancedArray(filled)
+
+  if (enhanced[0].newCases || enhanced[0].newDeaths)
+    await Promise.all([
+      sendAndLog(getEnhancedTweetText(enhanced), maxDate, 'nyt_enhanced'),
+      sendAndLog(getStateTweetText(stateData), maxDate, 'nyt'),
+    ])
+}
+
+export const sendAndLog = async (text: string, date: string, source: Source) => {
+  try {
+    console.log(`Sending ${source} tweet...`)
+    const tweet: Tweet = await sendTweet(text)
+
+    console.log(`Updating database for ${source} tweet...`)
+    await insertDataIntoFirestore(date, source, tweet.id_str)
+  } catch (e) {
+    console.error(JSON.stringify(e))
   }
 }
 
-const sendAndLog = async (id: string, text: string, date: string) => {
-  try {
-    console.log(`Sending tweet ${id}...`)
-    const tweet: Tweet = await sendTweet(text)
-
-    console.log(`Updating database for tweet ${id}...`)
-    await insertDataIntoFirestore(date, 'nyt', tweet.id_str)
-  } catch (e) {
-    console.error(e)
-  }
+export const asyncAndLog = async function <T>(call: () => Promise<T>, desc: string): Promise<T> {
+  console.log(new Date().toISOString(), desc, 'start')
+  const returnable: T = await call()
+  console.log(new Date().toISOString(), desc, 'end')
+  return returnable
 }
 
 export const getDateArray = (end: LocalDate) => {
@@ -59,7 +81,7 @@ export const getDateArray = (end: LocalDate) => {
   return returnable
 }
 
-const getEmptyStateDayArray: (end: LocalDate) => StateDay[] = end =>
+export const getEmptyStateDayArray: (end: LocalDate) => StateDay[] = end =>
   getDateArray(end).map(date => ({
     date,
     state: '',
@@ -68,7 +90,7 @@ const getEmptyStateDayArray: (end: LocalDate) => StateDay[] = end =>
     deaths: 0,
   }))
 
-const getFilledArray: (empty: StateDay[], raw: StateDay[]) => StateDay[] = (empty, raw) => {
+export const getFilledArray: (empty: StateDay[], raw: StateDay[]) => StateDay[] = (empty, raw) => {
   const returnable: StateDay[] = []
   empty.forEach(day => {
     const rawOfDate = raw.find(rawDay => rawDay.date.isEqual(day.date))
@@ -84,7 +106,7 @@ const getFilledArray: (empty: StateDay[], raw: StateDay[]) => StateDay[] = (empt
 }
 
 // pass in sorted array that has no gaps
-const getEnhancedArray = (stateDays: StateDay[]) => {
+export const getEnhancedArray = (stateDays: StateDay[]) => {
   const returnable: StateDay[] = []
   for (let i = 0; i < stateDays.length - 1; i++) {
     returnable.push({
@@ -96,7 +118,10 @@ const getEnhancedArray = (stateDays: StateDay[]) => {
   return returnable
 }
 
-const getEnhancedTweetText = (enhanced: StateDay[]) => `CASES ${getGraphEmoji(enhanced, 'newCases')}
+export const getEnhancedTweetText = (enhanced: StateDay[]) => `CASES ${getGraphEmoji(
+  enhanced,
+  'newCases',
+)}
 ${getMetricTweetText(enhanced, 'newCases')}
 
 DEATHS ${getGraphEmoji(enhanced, 'newDeaths')}
@@ -218,4 +243,13 @@ export interface Tweet {
   id_str: string
 }
 
-export type Source = 'nyt' | 'ncdhhs' | 'cdcv' | 'cdcv_nc' | 'projected' | 'dist'
+export type Source =
+  | 'nyt'
+  | 'nyt_enhanced'
+  | 'nyt_co'
+  | 'nyt_big_co'
+  | 'ncdhhs'
+  | 'cdcv'
+  | 'cdcv_nc'
+  | 'projected'
+  | 'dist'

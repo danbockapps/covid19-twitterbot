@@ -25,6 +25,12 @@ export const insertDataIntoFirestore = (date: string, source: Source, tweetId: s
     created: admin.firestore.FieldValue.serverTimestamp(),
   })
 
+export const insertPlaceholder = (date: string, source: Source) =>
+  db
+    .collection('tweets')
+    .doc()
+    .set({ date, source, created: admin.firestore.FieldValue.serverTimestamp() })
+
 export const insertVaxProgress = (data: CdcDataPoint, source: Source) =>
   db
     .collection('vax-progress')
@@ -44,6 +50,26 @@ export const dateExistsInFirestore = async (date: string, source: Source) => {
     .get()
 
   return !snapshot.empty
+}
+
+export const dateExistsInCountyRates = async (date: string) => {
+  const snapshot = await db.collection('county-rates').where('date', '==', date).limit(1).get()
+  return !snapshot.empty
+}
+
+export const getCountyRatesMaxDate = async (): Promise<string> => {
+  const snapshot = await db.collection('county-rates').orderBy('date', 'desc').limit(1).get()
+  return snapshot.docs[0]?.data().date
+}
+
+export const getNytCoMaxDate = async (): Promise<string> => {
+  const snapshot = await db
+    .collection('tweets')
+    .where('source', '==', 'nyt_co')
+    .orderBy('date', 'desc')
+    .limit(1)
+    .get()
+  return snapshot.docs[0]?.data().date
 }
 
 export const saveAllRates = async (rates: Rate[], date: LocalDate) => {

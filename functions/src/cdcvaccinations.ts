@@ -1,5 +1,4 @@
 import Axios from 'axios'
-import { runDistribution } from './distribution'
 import {
   dateExistsInFirestore,
   getLatest,
@@ -61,7 +60,6 @@ export const runCdcVaccinations = async (location: string, source: Source, headl
         ])
 
         if (location === 'NC') await runProjectedDate(data)
-        else await runDistribution(data)
       } else console.error('No ad1 or no ad2')
     } else console.log(`We already tweeted for ${data.Date}.`)
   } else console.log('Data is not usable.')

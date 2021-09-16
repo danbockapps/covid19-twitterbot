@@ -1,56 +1,46 @@
 import { LocalDate } from '@js-joda/core'
-import { getSavedRates, saveAllRates } from './firestore'
-import { CountyDay, getStateData, RawCountyDay } from './functions'
+import { getCountyRatesMaxDate, getNytCoMaxDate, getSavedRates } from './firestore'
+import { asyncAndLog, CountyDay, getStateData, RawCountyDay, sendAndLog } from './functions'
 import population from './population'
-import { sendTweet } from './tweet'
 
-export const runCounties = async (tweet: boolean) => {
-  try {
-    const endDate = LocalDate.now().minusDays(1)
+export const runCounties = async () => {
+  const [ratesMax, nytCoMax] = await Promise.all([
+    asyncAndLog(() => getCountyRatesMaxDate(), 'County rates max date'),
+    asyncAndLog(() => getNytCoMaxDate(), 'NYT co max date'),
+  ])
 
-    const [oldRates, newRates] = await Promise.all([
-      (async () => {
-        console.log(new Date().toISOString(), 'Starting oldRates')
-        const returnable = await getSavedRates(LocalDate.now().minusDays(2))
-        console.log(new Date().toISOString(), 'Ending oldRates')
-        return returnable
-      })(),
-      (async () => {
-        console.log(new Date().toISOString(), 'Starting newRates')
-        const returnable = await getCountyRates(endDate)
-        console.log(new Date().toISOString(), 'Ending newRates')
-        return returnable
-      })(),
-    ])
+  console.log('ratesMax', ratesMax, 'nytCoMax', nytCoMax)
 
-    console.log('oldRates.length', oldRates.length, 'newRates.length', newRates.length)
-
-    // TODO we don't need newRates if tweet === false
-    if (oldRates.length === 100 && newRates.length === 100)
-      return await Promise.all([
-        (async () => {
-          if (tweet) {
-            console.log('Starting sendTweet')
-            await sendTweet(getTweetText(mergeRates(oldRates, newRates), 0, ''))
-            console.log('Ending sendTweet')
-          }
-        })(),
-        (async () => {
-          if (tweet) {
-            console.log('Starting sendTweet for big cos')
-            await sendTweet(getBigCosTweetText(mergeRates(oldRates, newRates), 0, ''))
-            console.log('Ending sendTweet for big cos')
-          }
-        })(),
-        (async () => {
-          console.log('Starting saveAllRates')
-          await saveAllRates(newRates, endDate)
-          console.log('Ending saveAllRates')
-        })(),
-      ])
-  } catch (e) {
-    console.error(e)
+  if (ratesMax === nytCoMax) {
+    console.log('Dates are equal. No tweets.')
+    return
   }
+
+  const newDate = LocalDate.parse(ratesMax)
+
+  const [oldRates, newRates] = await Promise.all([
+    asyncAndLog(() => getSavedRates(newDate.minusDays(1)), 'oldRates'),
+    asyncAndLog(() => getSavedRates(newDate), 'newRates'),
+  ])
+
+  console.log('oldRates.length', oldRates.length, 'newRates.length', newRates.length)
+
+  if (oldRates.length !== 100 || newRates.length !== 100) {
+    console.log('Lengths must both be 100 to tweet.')
+    return
+  }
+
+  const mergedRates = mergeRates(oldRates, newRates)
+
+  if (!mergedRates.some(r => r.newRate !== r.oldRate)) {
+    console.log('Nothing changed. It might be the weekend.')
+    return
+  }
+
+  return await Promise.all([
+    asyncAndLog(() => sendAndLog(getCoTweetText(mergedRates), ratesMax, 'nyt_co'), 'co'),
+    asyncAndLog(() => sendAndLog(getBigCosTweetText(mergedRates), ratesMax, 'nyt_big_co'), 'bigco'),
+  ])
 }
 
 export interface Rate {
@@ -79,9 +69,12 @@ export const mergeRates = (oldRates: Rate[], newRates: Rate[]): MergedRate[] =>
 
 export const roundOff = (n: number) => Math.round(n * 10) / 10
 
-const getEmoji = (m: MergedRate) => (m.newRate > m.oldRate ? '🔺' : '⬇️')
+const getEmoji = (m: MergedRate) =>
+  m.newRate === m.oldRate ? '➡️' : m.newRate > m.oldRate ? '🔺' : '⬇️'
 
-export const getTweetText = (rates: MergedRate[], index: number, text: string): string => {
+export const getCoTweetText = (rates: MergedRate[], pIndex?: number, pText?: string): string => {
+  const [index, text] = pIndex && pText ? [pIndex, pText] : [0, '']
+
   const newText =
     index === 0
       ? `Top NC counties, 7-day avg new cases:
@@ -93,10 +86,16 @@ export const getTweetText = (rates: MergedRate[], index: number, text: string): 
 ${index + 1}. ${getEmoji(rates[index])} ${rates[index].county} ${roundOff(rates[index].newRate)}`)
 
   if (newText.length > 280) return text
-  else return getTweetText(rates, index + 1, newText)
+  else return getCoTweetText(rates, index + 1, newText)
 }
 
-export const getBigCosTweetText = (rates: MergedRate[], index: number, text: string): string => {
+export const getBigCosTweetText = (
+  rates: MergedRate[],
+  pIndex?: number,
+  pText?: string,
+): string => {
+  const [index, text] = pIndex && pText ? [pIndex, pText] : [0, '']
+
   const ratesWithPop = rates
     .map(r => ({
       ...r,

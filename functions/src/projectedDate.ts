@@ -40,17 +40,28 @@ export const getTweetText = (
   const pctVaxPastWeek = (dose1now - dose1lastWeek) / totalPop
   const pastWeekString = `${roundOff2sigdig(pctVaxPastWeek * 100)}%`
 
-  const pctToGo = 0.6 - pctVax
-  const numWeeksToGo = pctToGo / pctVaxPastWeek
-  const projectedDate = new Date(
-    date.plusDays(Math.round(numWeeksToGo * 7) + 1).toString(),
-  ).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
-
   return `In the past 7 days, ${pastWeekString} of the population of North Carolina received the first dose of the vaccine, bringing the total to ${roundOff(
     pctVax * 100,
   )}%.
 
-If we continue at ${pastWeekString} per week, we will reach 60% of the population of the state on ${projectedDate}.`
+If we continue at ${pastWeekString} per week, we will reach:
+
+70% on ${getProjectedDate(date, pctVax, pctVaxPastWeek, 0.7)}
+80% on ${getProjectedDate(date, pctVax, pctVaxPastWeek, 0.8)}`
 }
 
 const roundOff2sigdig = (n: number) => Math.round(n * 100) / 100
+
+const getProjectedDate = (
+  date: LocalDate,
+  pctVax: number,
+  pctVaxPastWeek: number,
+  targetPct: number,
+) => {
+  const pctToGo = targetPct - pctVax
+  const numWeeksToGo = pctToGo / pctVaxPastWeek
+  return new Date(date.plusDays(Math.round(numWeeksToGo * 7) + 1).toString()).toLocaleDateString(
+    'en-US',
+    { month: 'long', day: 'numeric', year: 'numeric' },
+  )
+}

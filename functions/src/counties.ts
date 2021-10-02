@@ -124,7 +124,7 @@ ${getEmoji(ratesWithPop[index])} ${ratesWithPop[index].county} ${roundOff(
 
 export const getCountyRates = async (end: LocalDate): Promise<Rate[]> => {
   console.time('counties')
-  const nc: CountyDay[] = await getStateData<RawCountyDay>('North Carolina', 'counties')
+  const nc: CountyDay[] = await getStateData<RawCountyDay>('North Carolina', 'counties-recent')
   console.timeEnd('counties')
 
   return nc

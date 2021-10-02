@@ -164,8 +164,10 @@ const getAverageWithCommas = (
 const getFormattedDate = (localDate: LocalDate) =>
   localDate.format(DateTimeFormatter.ofPattern('M/d'))
 
-// TODO improve types
-export const getStateData = <T extends RawStateDay>(state: string, file: 'states' | 'counties') =>
+export const getStateData = <T extends RawStateDay>(
+  state: string,
+  file: 'states' | 'counties-recent',
+) =>
   axios
     .get<string>(`https://raw.githubusercontent.com/nytimes/covid-19-data/master/us-${file}.csv`)
     .then(response =>

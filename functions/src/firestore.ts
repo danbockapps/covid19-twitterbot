@@ -8,7 +8,7 @@ import { Source } from './functions'
 Private key file was generated in Firebase Console settings.
 
 Run this command to make it work locally:
-export GOOGLE_APPLICATION_CREDENTIALS="/Users/dbock/socpersec/covid19-twitterbot/covid19-twitterbot-firebase-adminsdk-m5oa0-ab9abc440c.json"
+export GOOGLE_APPLICATION_CREDENTIALS="/Users/danbock/code/covid19-twitterbot/covid19-twitterbot-firebase-adminsdk-m5oa0-098b01c34c.json"
 */
 
 admin.initializeApp({

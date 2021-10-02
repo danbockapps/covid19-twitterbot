@@ -30,7 +30,7 @@ let wyoData: CountyDay[]
 
 beforeAll(async () => {
   mockedAxios.get.mockResolvedValue(mockResponseCounty)
-  wyoData = await getStateData<RawCountyDay>('Wyoming', 'counties')
+  wyoData = await getStateData<RawCountyDay>('Wyoming', 'counties-recent')
 })
 
 it('gets the data', async () => {
